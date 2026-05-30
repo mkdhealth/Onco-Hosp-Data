@@ -405,7 +405,8 @@
 // ══════════════════════════════════════════════════════════
 // CONFIG — paste your Power Automate HTTP trigger URL here
 // ══════════════════════════════════════════════════════════
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwDrg_fenyLsOTB9VvFNziuD7Sk5jprmSUpSjwEsO-42NpSRyAQWXUfdbJVNNya93Se2w/exec';
+function _cb(){}
+const GOOGLE_SCRIPT_URL = 'https://hook.eu1.make.com/516vtkpwzikp4vm3iuo9x9e6d3e52la6';
 // If blank / placeholder, form data is stored locally only and shown as JSON for manual entry
 // ══════════════════════════════════════════════════════════
 
@@ -754,7 +755,7 @@ async function submitForm() {
   const ref = 'OFP-' + Date.now().toString(36).toUpperCase();
   const timestamp = new Date().toISOString();
   const url = GOOGLE_SCRIPT_URL;
-  const isConfigured = url && url !== 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE' && url.startsWith('http');
+  const isConfigured = url && url.startsWith('http');
 
   // Common fields shared across all doctor rows
   const common = {
@@ -794,11 +795,11 @@ async function submitForm() {
 
     if (isConfigured) {
       try {
+        const formBody = Object.keys(payload).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(payload[k])).join('&');
         await fetch(url, {
           method: 'POST',
-          mode: 'no-cors',
-          headers: {'Content-Type': 'text/plain'},
-          body: JSON.stringify(payload)
+          headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+          body: formBody
         });
       } catch(e) {
         const q = JSON.parse(localStorage.getItem('ofp_queue') || '[]');
@@ -828,14 +829,13 @@ async function submitForm() {
 
 async function retryQueue() {
   const url = GOOGLE_SCRIPT_URL;
-  if (!url || !url.startsWith('http') || url === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') return;
+  if (!url || !url.startsWith('http')) return;
   const q = JSON.parse(localStorage.getItem('ofp_queue') || '[]');
   if (!q.length) return;
   const remaining = [];
   for (const item of q) {
     try {
-      const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(item.payload)});
-      if (!res.ok) throw new Error('HTTP ' + res.status);
+      await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(item.payload)});
     } catch(e) { remaining.push(item); }
   }
   localStorage.setItem('ofp_queue', JSON.stringify(remaining));

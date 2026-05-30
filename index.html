@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="theme-color" content="#6B1A2E"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Onco Portal"/>
+<title>Onco Hospital Portal</title>
+<style>
+  :root{
+    --primary:#6B1A2E;--primary-dark:#4A0F1E;--primary-light:#8B2A42;
+    --accent:#1A6B5A;--accent-light:#2A8B74;
+    --bg:#F8F4F5;--card:#FFFFFF;--border:#E0D0D4;
+    --text:#1A1215;--text-muted:#6B5560;--text-light:#9B8590;
+    --success:#1A6B3A;--error:#B91C1C;--warning:#92400E;
+    --radius:16px;--radius-sm:10px;--shadow:0 4px 24px rgba(107,26,46,0.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);overscroll-behavior:none}
+  
+  /* HEADER */
+  .app-header{background:linear-gradient(135deg,var(--primary-dark),var(--primary));padding:env(safe-area-inset-top,0px) 0 0;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,0.2)}
+  .header-inner{padding:14px 20px 12px;display:flex;align-items:center;gap:12px}
+  .header-icon{width:36px;height:36px;background:rgba(255,255,255,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+  .header-text h1{color:#fff;font-size:17px;font-weight:700;letter-spacing:-0.3px}
+  .header-text p{color:rgba(255,255,255,0.7);font-size:11px;margin-top:1px}
+  
+  /* PROGRESS */
+  .progress-bar-wrap{background:rgba(0,0,0,0.2);height:3px}
+  .progress-bar{height:100%;background:rgba(255,255,255,0.8);transition:width 0.4s cubic-bezier(.4,0,.2,1)}
+  .step-indicators{display:flex;align-items:center;padding:10px 20px 12px;gap:6px}
+  .step-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.3);transition:all .3s;flex-shrink:0}
+  .step-dot.active{background:#fff;transform:scale(1.3)}
+  .step-dot.done{background:rgba(255,255,255,0.7)}
+  .step-label{color:rgba(255,255,255,0.85);font-size:12px;margin-left:4px;font-weight:500}
+
+  /* MAIN */
+  .main{padding:20px 16px 120px;max-width:480px;margin:0 auto}
+  
+  /* CARDS */
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:16px}
+  .card-header{background:linear-gradient(135deg,var(--primary),var(--primary-light));padding:16px 20px;display:flex;align-items:center;gap:12px}
+  .card-header-icon{width:32px;height:32px;background:rgba(255,255,255,0.2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+  .card-header h2{color:#fff;font-size:15px;font-weight:600}
+  .card-header p{color:rgba(255,255,255,0.75);font-size:11px;margin-top:2px}
+  .card-body{padding:20px}
+
+  /* FORM FIELDS */
+  .field{margin-bottom:20px}
+  .field:last-child{margin-bottom:0}
+  label{display:block;font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.4px}
+  label .req{color:var(--error);margin-left:2px}
+  .field-hint{font-size:11px;color:var(--text-light);margin-top:4px;font-style:italic}
+  
+  input[type=text],input[type=number],select,textarea{
+    width:100%;padding:14px 16px;border:2px solid var(--border);border-radius:var(--radius-sm);
+    font-size:16px;color:var(--text);background:#fff;outline:none;
+    transition:border-color .2s,box-shadow .2s;appearance:none;-webkit-appearance:none
+  }
+  input[type=text]:focus,input[type=number]:focus,select:focus,textarea:focus{
+    border-color:var(--primary);box-shadow:0 0 0 3px rgba(107,26,46,0.12)
+  }
+  select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath fill='%236B1A2E' d='M5 7l5 5 5-5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:44px}
+  input[type=number]{-moz-appearance:textfield}
+  input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
+  
+  .input-error{border-color:var(--error)!important;box-shadow:0 0 0 3px rgba(185,28,28,0.12)!important}
+  .err-msg{color:var(--error);font-size:12px;margin-top:4px;display:none}
+  .err-msg.show{display:block}
+
+  /* RADIO CHIPS */
+  .chip-group{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{padding:10px 16px;border:2px solid var(--border);border-radius:40px;font-size:14px;font-weight:500;color:var(--text-muted);cursor:pointer;transition:all .2s;user-select:none}
+  .chip:hover{border-color:var(--primary);color:var(--primary)}
+  .chip.selected{background:var(--primary);border-color:var(--primary);color:#fff}
+  
+  /* UNIT INPUT GRID */
+  .unit-grid{display:grid;gap:12px}
+  .unit-row{display:flex;align-items:center;gap:12px;background:#F8F4F5;border-radius:var(--radius-sm);padding:12px 14px}
+  .unit-brand{flex:1;font-size:14px;font-weight:600;color:var(--text)}
+  .unit-brand span{display:block;font-size:11px;font-weight:400;color:var(--text-light);margin-top:1px}
+  .unit-input{width:90px;flex-shrink:0}
+  .unit-input input{padding:10px 12px;text-align:center;font-size:15px;font-weight:600;border-radius:8px}
+
+  /* SECTION DIVIDER */
+  .section-div{display:flex;align-items:center;gap:10px;margin:20px 0 16px}
+  .section-div span{font-size:12px;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:0.6px;white-space:nowrap}
+  .section-div::before,.section-div::after{content:'';flex:1;height:1px;background:var(--border)}
+
+  /* SUMMARY CARD */
+  .summary-section{margin-bottom:18px}
+  .summary-label{font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px}
+  .summary-row{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border)}
+  .summary-row:last-child{border-bottom:none}
+  .summary-key{font-size:13px;color:var(--text-muted);flex:1}
+  .summary-val{font-size:13px;font-weight:600;color:var(--text);text-align:right;flex:1;word-break:break-word}
+  .units-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+  .units-table th{text-align:left;padding:6px 8px;font-size:11px;color:var(--text-light);text-transform:uppercase;letter-spacing:0.4px;border-bottom:2px solid var(--border)}
+  .units-table td{padding:8px;border-bottom:1px solid var(--border)}
+  .units-table tr:last-child td{border-bottom:none}
+  .units-table .brand-col{font-weight:600;color:var(--text)}
+  .units-table .num-col{text-align:right;color:var(--primary);font-weight:700}
+  
+  /* NEW HOSPITAL BANNER */
+  .new-hosp-banner{background:linear-gradient(135deg,#FEF3C7,#FDE68A);border:2px solid #F59E0B;border-radius:var(--radius-sm);padding:14px;margin-top:12px;display:none}
+  .new-hosp-banner.show{display:block}
+  .new-hosp-banner p{font-size:13px;color:#92400E;font-weight:500}
+  .new-hosp-banner .banner-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px;color:#78350F}
+
+  /* BOTTOM NAV */
+  .bottom-nav{position:fixed;bottom:0;left:0;right:0;padding:12px 16px calc(env(safe-area-inset-bottom,0px) + 12px);background:#fff;border-top:1px solid var(--border);display:flex;gap:12px;box-shadow:0 -4px 20px rgba(0,0,0,0.08);z-index:100}
+  .btn{flex:1;padding:16px;border:none;border-radius:var(--radius-sm);font-size:16px;font-weight:700;cursor:pointer;transition:all .2s;outline:none}
+  .btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;box-shadow:0 4px 12px rgba(107,26,46,0.3)}
+  .btn-primary:active{transform:scale(0.97);box-shadow:0 2px 8px rgba(107,26,46,0.25)}
+  .btn-secondary{background:var(--bg);color:var(--primary);border:2px solid var(--border);flex:0 0 auto;width:80px}
+  .btn-secondary:active{transform:scale(0.97)}
+  .btn-submit{background:linear-gradient(135deg,var(--accent),var(--accent-light));box-shadow:0 4px 12px rgba(26,107,90,0.3)}
+  .btn:disabled{opacity:0.5;cursor:not-allowed;transform:none!important}
+
+  /* SUCCESS SCREEN */
+  .success-screen{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;text-align:center;padding:40px 24px}
+  .success-screen.show{display:flex}
+  .success-icon{width:90px;height:90px;background:linear-gradient(135deg,var(--accent),var(--accent-light));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:42px;margin-bottom:24px;box-shadow:0 8px 32px rgba(26,107,90,0.3);animation:pop .5s cubic-bezier(.2,.8,.3,1.2) both}
+  @keyframes pop{0%{transform:scale(0);opacity:0}100%{transform:scale(1);opacity:1}}
+  .success-screen h2{font-size:24px;font-weight:800;color:var(--text);margin-bottom:8px}
+  .success-screen p{font-size:15px;color:var(--text-muted);margin-bottom:32px;line-height:1.5}
+  .ref-chip{background:var(--bg);border:2px solid var(--border);border-radius:40px;padding:8px 20px;font-size:13px;font-weight:700;color:var(--primary);margin-bottom:32px}
+
+  /* SPINNER */
+  .spinner{width:22px;height:22px;border:3px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle;margin-right:8px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  
+  /* STEP ANIMATION */
+  .step-page{animation:fadeIn .25s ease}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+  /* OFFLINE BANNER */
+  .offline-banner{background:#1F2937;color:#F9FAFB;padding:10px 16px;font-size:12px;text-align:center;display:none}
+  .offline-banner.show{display:block}
+
+  /* LOGO CARD */
+
+  /* MULTI-DOCTOR CARDS */
+  .doctor-card-entry{background:#FAFAFA;border:2px solid var(--border);border-radius:var(--radius-sm);margin-bottom:14px;overflow:hidden}
+  .doctor-num-header{background:linear-gradient(135deg,var(--primary),var(--primary-light));padding:10px 16px;display:flex;align-items:center;justify-content:space-between}
+  .doctor-num-header span{color:#fff;font-size:13px;font-weight:700;letter-spacing:0.2px}
+  .remove-dr-btn{background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;transition:background .2s}
+  .remove-dr-btn:active{background:rgba(255,255,255,0.4)}
+  .doctor-entry-body{padding:16px}
+  .doctor-entry-body .field{margin-bottom:16px}
+  .doctor-entry-body .field:last-child{margin-bottom:0}
+  .add-dr-btn{width:100%;margin-top:12px;padding:14px;background:#fff;border:2px dashed var(--primary);border-radius:var(--radius-sm);color:var(--primary);font-size:15px;font-weight:700;cursor:pointer;text-align:center;transition:all .2s;display:block}
+  .add-dr-btn:active{background:rgba(107,26,46,0.06);transform:scale(0.98)}
+
+  /* SUMMARY DOCTOR TABLE */
+  .doc-summary-entry{background:#F8F4F5;border-radius:8px;padding:12px;margin-bottom:8px;border-left:3px solid var(--primary)}
+  .doc-summary-entry:last-child{margin-bottom:0}
+  .doc-summary-num{font-size:11px;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}
+</style>
+</head>
+<body>
+
+<div class="offline-banner" id="offlineBanner">⚠️ You are offline. Fill the form — submission will retry when connected.</div>
+
+<div class="app-header">
+  <div class="header-inner">
+    <div class="header-icon">🏥</div>
+    <div class="header-text">
+      <h1>Onco Hospital Portal</h1>
+      <p>Field Sales Data Collection — May 2026 onwards</p>
+    </div>
+  </div>
+  <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar" style="width:14%"></div></div>
+  <div class="step-indicators" id="stepIndicators">
+    <div class="step-dot active" id="dot0"></div>
+    <div class="step-dot" id="dot1"></div>
+    <div class="step-dot" id="dot2"></div>
+    <div class="step-dot" id="dot3"></div>
+    <div class="step-dot" id="dot4"></div>
+    <div class="step-dot" id="dot5"></div>
+    <div class="step-dot" id="dot6"></div>
+    <span class="step-label" id="stepLabel">Step 1 of 7</span>
+  </div>
+</div>
+
+<div class="main" id="mainContent">
+
+  <!-- ═══ STEP 1: KAM Info ═══ -->
+  <div id="step0" class="step-page">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-icon">👤</div>
+        <div><h2>KAM Information</h2><p>Your name and employee details</p></div>
+      </div>
+      <div class="card-body">
+        <div class="field">
+          <label>KAM Name <span class="req">*</span></label>
+          <input type="text" id="kamName" placeholder="Full name" autocomplete="name"/>
+          <div class="err-msg" id="err_kamName">Please enter your name</div>
+        </div>
+        <div class="field">
+          <label>Employee Code <span class="req">*</span></label>
+          <input type="text" id="empCode" placeholder="e.g. EMP12345" autocomplete="off"/>
+          <div class="err-msg" id="err_empCode">Please enter your employee code</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 2: Hospital ═══ -->
+  <div id="step1" class="step-page" style="display:none">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-icon">🏥</div>
+        <div><h2>Hospital Details</h2><p>Select HQ city then hospital</p></div>
+      </div>
+      <div class="card-body">
+        <div class="field">
+          <label>HQ / Hospital City <span class="req">*</span></label>
+          <select id="hqSelect" onchange="onHQChange()">
+            <option value="">— Select HQ / City —</option>
+          </select>
+          <div class="err-msg" id="err_hq">Please select a city</div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:4px;margin-bottom:8px">
+          <div class="field" style="flex:1;margin:0">
+            <label>Region</label>
+            <input id="regionDisplay" class="form-input" type="text" readonly placeholder="Auto-filled" style="background:#f0f0f0;color:#555;font-size:13px">
+          </div>
+          <div class="field" style="flex:1;margin:0">
+            <label>Zone</label>
+            <input id="zoneDisplay" class="form-input" type="text" readonly placeholder="Auto-filled" style="background:#f0f0f0;color:#555;font-size:13px">
+          </div>
+        </div>
+        <div class="field" id="hospitalField" style="opacity:0.4;pointer-events:none">
+          <label>Hospital Name <span class="req">*</span></label>
+          <select id="hospitalSelect" onchange="onHospitalChange()">
+            <option value="">— Select Hospital —</option>
+          </select>
+          <div class="err-msg" id="err_hospital">Please select a hospital</div>
+        </div>
+        <div class="new-hosp-banner" id="newHospBanner">
+          <div class="banner-title">📝 New Hospital</div>
+          <p>You selected "Other / New Hospital". Please type the exact name below so it can be registered in the master list.</p>
+        </div>
+        <div class="field" id="newHospField" style="display:none">
+          <label>New Hospital Name <span class="req">*</span></label>
+          <input type="text" id="newHospName" placeholder="Type exact hospital name"/>
+          <div class="field-hint">Please be as specific as possible — include city if helpful.</div>
+          <div class="err-msg" id="err_newHosp">Please enter the hospital name</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 3: Doctors (multi-entry) ═══ -->
+  <div id="step2" class="step-page" style="display:none">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-icon">🩺</div>
+        <div><h2>Doctor Details</h2><p>Add all prescribing doctors for this visit</p></div>
+      </div>
+      <div class="card-body">
+        <div id="doctorListBody"><!-- rendered by renderDoctors() --></div>
+        <button class="add-dr-btn" onclick="addDoctor()">＋ Add Another Doctor</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 4: Reporting Month ═══ -->
+  <div id="step3" class="step-page" style="display:none">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-icon">📅</div>
+        <div><h2>Reporting Month</h2><p>Select the month for this submission</p></div>
+      </div>
+      <div class="card-body">
+        <div class="field">
+          <label>Month <span class="req">*</span></label>
+          <div class="chip-group" id="monthChips">
+            <div class="chip" onclick="selectChip('month','May 2026',this)">May 2026</div>
+            <div class="chip" onclick="selectChip('month','Jun 2026',this)">Jun 2026</div>
+            <div class="chip" onclick="selectChip('month','Jul 2026',this)">Jul 2026</div>
+            <div class="chip" onclick="selectChip('month','Aug 2026',this)">Aug 2026</div>
+            <div class="chip" onclick="selectChip('month','Sep 2026',this)">Sep 2026</div>
+            <div class="chip" onclick="selectChip('month','Oct 2026',this)">Oct 2026</div>
+            <div class="chip" onclick="selectChip('month','Nov 2026',this)">Nov 2026</div>
+            <div class="chip" onclick="selectChip('month','Dec 2026',this)">Dec 2026</div>
+            <div class="chip" onclick="selectChip('month','Jan 2027',this)">Jan 2027</div>
+            <div class="chip" onclick="selectChip('month','Feb 2027',this)">Feb 2027</div>
+            <div class="chip" onclick="selectChip('month','Mar 2027',this)">Mar 2027</div>
+            <div class="chip" onclick="selectChip('month','Apr 2027',this)">Apr 2027</div>
+          </div>
+          <div class="err-msg" id="err_month">Please select a reporting month</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 5: Planned Units ═══ -->
+  <div id="step4" class="step-page" style="display:none">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-icon">📋</div>
+        <div><h2>Planned Units</h2><p>Enter planned quantities for each brand</p></div>
+      </div>
+      <div class="card-body">
+        <div class="unit-grid">
+          <div class="unit-row">
+            <div class="unit-brand">Her2 P<span>Planned qty</span></div>
+            <div class="unit-input"><input type="number" id="p_her2" min="0" placeholder="0"/></div>
+          </div>
+          <div class="unit-row">
+            <div class="unit-brand">Pacliall<span>Planned qty</span></div>
+            <div class="unit-input"><input type="number" id="p_pacliall" min="0" placeholder="0"/></div>
+          </div>
+          <div class="unit-row">
+            <div class="unit-brand">Kintsugi<span>Planned qty</span></div>
+            <div class="unit-input"><input type="number" id="p_kintsugi" min="0" placeholder="0"/></div>
+          </div>
+          <div class="unit-row">
+            <div class="unit-brand">Cancrinase<span>Planned qty</span></div>
+            <div class="unit-input"><input type="number" id="p_cancrinase" min="0" placeholder="0"/></div>
+          </div>
+          <div class="unit-row">
+            <div class="unit-brand">Supdeno<span>Planned qty</span></div>
+            <div class="unit-input"><input type="number" id="p_supdeno" min="0" placeholder="0"/></div>
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--text-light);margin-top:14px;text-align:center">Leave blank or enter 0 if not applicable</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 6: Actual Units ═══ -->
+  <div id="step5" class="step-page" style="display:none">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-icon">📊</div>
+        <div><h2>Actual Units</h2><p>Enter actual quantities achieved</p></div>
+      </div>
+      <div class="card-body">
+        <div class="unit-grid">
+          <div class="unit-row">
+            <div class="unit-brand">Her2 P<span>Actual qty</span></div>
+            <div class="unit-input"><input type="number" id="a_her2" min="0" placeholder="0"/></div>
+          </div>
+          <div class="unit-row">
+            <div class="unit-brand">Pacliall<span>Actual qty</span></div>
+            <div class="unit-input"><input type="number" id="a_pacliall" min="0" placeholder="0"/></div>
+          </div>
+          <div class="unit-row">
+            <div class="unit-brand">Kintsugi<span>Actual qty</span></div>
+            <div class="unit-input"><input type="number" id="a_kintsugi" min="0" placeholder="0"/></div>
+          </div>
+          <div class="unit-row">
+            <div class="unit-brand">Cancrinase<span>Actual qty</span></div>
+            <div class="unit-input"><input type="number" id="a_cancrinase" min="0" placeholder="0"/></div>
+          </div>
+          <div class="unit-row">
+            <div class="unit-brand">Supdeno<span>Actual qty</span></div>
+            <div class="unit-input"><input type="number" id="a_supdeno" min="0" placeholder="0"/></div>
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--text-light);margin-top:14px;text-align:center">Leave blank or enter 0 if not applicable</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 7: Review ═══ -->
+  <div id="step6" class="step-page" style="display:none">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-icon">✅</div>
+        <div><h2>Review & Submit</h2><p>Confirm all details before submitting</p></div>
+      </div>
+      <div class="card-body" id="summaryBody">
+        <!-- filled dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="success-screen" id="successScreen">
+    <img src="data:image/png;base64,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" alt="Onco Mankind Specialities" style="max-width:160px;width:100%;height:auto;display:block;margin:0 auto 16px"/>
+    <div class="success-icon">✓</div>
+    <h2>Submitted!</h2>
+    <p>Your field data has been recorded successfully. Thank you for using the Onco Hospital Portal.</p>
+    <div class="ref-chip" id="refChip">Ref: —</div>
+    <button class="btn btn-primary" onclick="resetForm()" style="max-width:240px;flex:none">+ Submit Another Entry</button>
+  </div>
+
+</div><!-- /main -->
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav" id="bottomNav">
+  <button class="btn btn-secondary" id="btnBack" onclick="prevStep()" style="display:none">← Back</button>
+  <button class="btn btn-primary" id="btnNext" onclick="nextStep()">Next →</button>
+  <button class="btn btn-primary btn-submit" id="btnSubmit" onclick="submitForm()" style="display:none">Submit ✓</button>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// CONFIG — paste your Power Automate HTTP trigger URL here
+// ══════════════════════════════════════════════════════════
+function _cb(){}
+const GOOGLE_SCRIPT_URL = 'https://hook.eu1.make.com/516vtkpwzikp4vm3iuo9x9e6d3e52la6';
+// If blank / placeholder, form data is stored locally only and shown as JSON for manual entry
+// ══════════════════════════════════════════════════════════
+
+const HOSPITAL_DATA = {"AHMEDABAD": [{"code": "H00001", "name": "Apollo Hospitals, Ahmedabad"}, {"code": "H00002", "name": "Gujarat Cancer & Research Institute,Ahmedabad"}, {"code": "H00003", "name": "HCG Aastha Cancer Centre Sola, Ahmedabad"}, {"code": "H00004", "name": "HOC Vedanta (Hemato Oncology Clinic),Ahmedabad"}, {"code": "H00005", "name": "Marengo CIMS Hospital,Ahmedabad"}, {"code": "H00006", "name": "Oncowin Cancer Center,Ahmedabad"}, {"code": "H00007", "name": "Rajkot Cancer Society & Allied Hospitals"}, {"code": "H00008", "name": "Shalby Hospital,Ahmedabad"}, {"code": "H00009", "name": "Shashwat Multispeciality Hospital,Ahmedabad"}, {"code": "H00010", "name": "Sterling Hospital,Memnagar,Ahmedabad"}, {"code": "H00011", "name": "Zydus Super Speciality Hospital, Ahmedabad"}], "BENGALURU": [{"code": "H00012", "name": "Apollo Hospitals, Bengaluru"}, {"code": "H00013", "name": "Aster CMI Hospital,Hebbal"}, {"code": "H00014", "name": "Aster Whitefield Hospital, Bangalore"}, {"code": "H00015", "name": "Bangalore Baptist Hospital (BBH) in Hebbal, Bangalore"}, {"code": "H00016", "name": "Bhagwan Mahaveer Jain Hospital,Bangalore"}, {"code": "H00017", "name": "Cytecare Hospital,Bengaluru"}, {"code": "H00018", "name": "ESIC Model Hospital,Rajaji Nagar, Bengaluru"}, {"code": "H00019", "name": "Fortis Hospital,Bengaluru"}, {"code": "H00020", "name": "Gleneagles BGS Hospital, Kengeri"}, {"code": "H00021", "name": "HCG Bharath Hospital & Institute of Oncology (BHIO)"}, {"code": "H00022", "name": "HCG Oncology Centre, K. R. Road,Bangalore"}, {"code": "H00023", "name": "Kauvery Hospitals,Bangalore"}, {"code": "H00024", "name": "Kempegowda Institute of Medical Sciences,Bangalore"}, {"code": "H00025", "name": "Kidwai Memorial Institute of Oncology (KMIO),Bangalore"}, {"code": "H00032", "name": "MS Ramaiah Memorial Hospital ,Bangalore"}, {"code": "H00026", "name": "Manipal Hospital,Millers Road,Cunningham"}, {"code": "H00027", "name": "Manipal Hospital,Yelahanka,Bangalore"}, {"code": "H00028", "name": "Manipal Hospitals ,Old Airport Road,Bangalore"}, {"code": "H00029", "name": "Manipal Hospitals,Whitefield,Bangalore"}, {"code": "H00030", "name": "Manipal Hospitals,Yeshwanthpur,Bangalore"}, {"code": "H00031", "name": "Mazumdar Shaw Medical Centre, Narayana Healthcity, Bangalore"}, {"code": "H00033", "name": "Rainbow Childrens Hospital,Bengaluru"}, {"code": "H00035", "name": "SPARSH Hospital, Yeshwanthpur"}, {"code": "H00036", "name": "SPARSH Hospital,Hennur Road"}, {"code": "H00034", "name": "Sagar Hospital – Kumaraswamy, Bengaluru"}, {"code": "H00037", "name": "Sri Shankara Cancer Hospital and Research Centre,Bangalore"}, {"code": "H00038", "name": "St. John's Medical College Hospital,Bangalore"}, {"code": "H00039", "name": "Vydehi Institute of Medical Sciences and Research Centre,Bangalore"}], "BHOPAL": [{"code": "H00040", "name": "AIIMS,Bhopal"}, {"code": "H00555", "name": "Apollo SAGE Hospital ,Bhopal"}, {"code": "H00041", "name": "Baderia MetroPrime Hospital,Jabalpur"}, {"code": "H00042", "name": "Bansal Hospital,Bhopal"}, {"code": "H00043", "name": "Career Institute of Medical Sciences (CIMS), Bhopal"}, {"code": "H00044", "name": "Chirayu Hospital & Medical College, Bhopal"}, {"code": "H00045", "name": "Hyderabad Omega Hospital in South Civil Lines,Jabalpur"}, {"code": "H00046", "name": "Jawaharlal Nehru Cancer Hospital & Research Centre (JNCHRC),Bhopal"}, {"code": "H00047", "name": "Laxmi Narayan Hospital,Madan Mahal,Jabalpur"}, {"code": "H00048", "name": "Navodaya Medical College Hospital & Research Centre (Navodaya Hospital), Bhopal"}, {"code": "H00049", "name": "Netaji Subhash Chandra Bose Medical College and Hospital (NSCBMC),Jabalpur"}, {"code": "H00050", "name": "Shalby Multispeciality Hospital, Jabalpur"}, {"code": "H00051", "name": "Siddhanta Superspeciality Hospital,Bhopal"}, {"code": "H00052", "name": "Super Speciality Block (SSB), Shyam Shah Medical College, Rewa"}, {"code": "H00053", "name": "Synergy Hospital, Indore"}, {"code": "H00054", "name": "Yashoda Hospital,Bhopal"}], "BHUBNESHWAR": [{"code": "H00056", "name": "AIIMS,Bhubaneswar"}, {"code": "H00055", "name": "Acharya Harihar Post Graduate Institute of Cancer (AHPGIC),Bhubaneswar"}, {"code": "H00057", "name": "Apollo Hospitals, Bhubaneswar"}, {"code": "H00058", "name": "Bagchi Sri Shankara Cancer Centre and Research Institute,Bhubaneswar"}, {"code": "H00059", "name": "HCG Panda Cancer Centre, Telengapentha, Cuttack"}, {"code": "H00060", "name": "Institute of Medical Sciences (IMS) & SUM Hospital,Bhubaneswar"}, {"code": "H00061", "name": "Ispat General Hospital (IGH),Rourkela"}, {"code": "H00062", "name": "KIMS - Kalinga Institute of Medical Sciences,Bhubaneswar"}, {"code": "H00064", "name": "MKCG Medical College & Hospital, Berhampur"}, {"code": "H00063", "name": "Manipal Hospitals, Bhubaneswar"}, {"code": "H00065", "name": "Sparsh Hospitals & Critical Care,Bhubaneswar"}, {"code": "H00066", "name": "Srirama Chandra Bhanja Medical College & Hospital, Cuttack"}, {"code": "H00067", "name": "Utkal Hospital, Bhubaneswar"}], "CHANDIGARH": [{"code": "H00068", "name": "Atal Cancer Institute, Ambala"}, {"code": "H00069", "name": "Fortis Hospital,Mohali"}, {"code": "H00070", "name": "Government Medical College and Hospital (GMCH),Chandigarh"}, {"code": "H00071", "name": "Homi Bhabha Cancer Hospital & Research Centre (HBCH&RC),Mullanpur"}, {"code": "H00072", "name": "Indira Gandhi Medical College, Shimla"}, {"code": "H00073", "name": "Max Super Speciality Hospital, Mohali"}, {"code": "H00075", "name": "PGIMER, Chandigarh"}, {"code": "H00074", "name": "Paras Hospital, Panchkula"}, {"code": "H00076", "name": "Sohana Hospital(SGHS),Sector 77, Mohali"}], "CHENNAI": [{"code": "H00077", "name": "Adyar Cancer Institute,Chennai"}, {"code": "H00078", "name": "Anvika Hospital Clinic,Cuddalore"}, {"code": "H00079", "name": "Apollo Hospitals, Chennai"}, {"code": "H00080", "name": "Apollo Hospitals, Teynampet"}, {"code": "H00081", "name": "Apollo Proton Cancer Centre,Chennai"}, {"code": "H00082", "name": "Apollo Multispecialty Hospital, Greams Road, Chennai"}, {"code": "H00083", "name": "Christian Medical College (CMC),Vellore"}, {"code": "H00084", "name": "Dr. Rela Institute & Medical Centre,Chennai"}, {"code": "H00085", "name": "Global Hospitals, Chennai"}, {"code": "H00086", "name": "I Care Cancer Clinic,Chennai"}, {"code": "H00087", "name": "Iswarya Hospital Chennai"}, {"code": "H00088", "name": "JIPMER (Jawaharlal Institute of Postgraduate Medical Education & Research), Puducherry"}, {"code": "H00089", "name": "Kalaignar Centenary Super Speciality Hospital (KCSSH),Guindy ,Chennai"}, {"code": "H00090", "name": "Kauvery Hospital,Chennai"}, {"code": "H00094", "name": "MGM Healthcare,Chennai"}, {"code": "H00095", "name": "MIOT International,Manapakkam"}, {"code": "H00092", "name": "Madras Medical College (MMC),Chennai"}, {"code": "H00093", "name": "Mahima Cancer Centre,Chennai"}, {"code": "H00096", "name": "Narayana Hospitals,Chennai"}, {"code": "H00097", "name": "RAI MEMORIAL HOSPITAL,Chennai"}, {"code": "H00098", "name": "Royapettah GH,Chennai"}, {"code": "H00101", "name": "SRM Prime Hospital, Ramapuram"}, {"code": "H00099", "name": "Sri Ramachandra Medical Centre (SRMC) Hospital ,Chennai"}, {"code": "H00100", "name": "Srinivasan Rajalakshmi Memorial Hospital ,Nanganallur, Chennai"}, {"code": "H00102", "name": "Stanley Hospital,Chennai"}, {"code": "H00103", "name": "Tamil Nadu Government Multi-Super-Speciality Hospital, OMANDURAR"}, {"code": "H00104", "name": "VS hospital,Chennai"}], "COIMBATORE": [{"code": "H00105", "name": "Coimbatore Medical College Hospital (CMCH),Coimbatore"}, {"code": "H00106", "name": "Dharan Hospital,Salem"}, {"code": "H00107", "name": "G. Kuppuswamy Naidu Memorial Hospital (GKNM),Coimbatore"}, {"code": "H00109", "name": "GEM Hospital & Research Centre,Coimbatore"}, {"code": "H00108", "name": "Ganga Hospital,Coimbatore"}, {"code": "H00110", "name": "Government Erode Medical College & Hospital (GEMCH), Perundurai"}, {"code": "H00111", "name": "Kovai Medical Center and Hospital (KMCH),Coimbatore"}, {"code": "H00112", "name": "Kumaran Hospital, Coimbatore"}, {"code": "H00113", "name": "PSG Hospitals, Coimbatore"}, {"code": "H00114", "name": "Royal Care Super Speciality Hospital,Coimbatore"}, {"code": "H00115", "name": "Shanmuga Hospital,Salem"}, {"code": "H00116", "name": "Thangam Cancer Center,Namakkal"}], "DEHRADUN": [{"code": "H00117", "name": "AIIMS, Rishikesh"}, {"code": "H00118", "name": "American Oncology Institute (AOI),Aligarh"}, {"code": "H00119", "name": "Gangasheel Hospital,Bareilly"}, {"code": "H00120", "name": "Government Medical College, Haldwani"}, {"code": "H00121", "name": "Graphic Era Institute of Medical Sciences & Hospital,Dehradun"}, {"code": "H00122", "name": "Himalayan Institute of Medical Sciences (HIMS),Dehradun"}, {"code": "H00123", "name": "Max Super Speciality Hospital, Dehradun"}, {"code": "H00124", "name": "Pushpanjali Hospital & Research Centre,Agra"}, {"code": "H00125", "name": "Rohilkhand Medical College & Hospital(RMCH) ,Bareilly"}, {"code": "H00126", "name": "Shri Mahant Indiresh Hospital (SMIH) ,Dehradun"}, {"code": "H00127", "name": "Ujala Cygnus Central Hospital, Haldwani"}, {"code": "H00128", "name": "Unspecified"}], "DELHI": [{"code": "H00129", "name": "AIIMS,Delhi"}, {"code": "H00130", "name": "Apollo Hospitals, Indraparastha,Delhi"}, {"code": "H00132", "name": "BLK-Max Super Speciality Hospital Delhi"}, {"code": "H00131", "name": "Batra Hospital & Medical Research Centre, Delhi"}, {"code": "H00133", "name": "Chhatrapati Shivaji Subharti Hospital,Meerut"}, {"code": "H00134", "name": "Dharamshila Narayana Superspeciality Hospital,Delhi"}, {"code": "H00135", "name": "Fortis Hospital,Defence Colony,Delhi"}, {"code": "H00136", "name": "Fortis Hospital,Greater Noida"}, {"code": "H00137", "name": "Fortis Hospital,Okhla,Delhi"}, {"code": "H00138", "name": "Fortis Hospital,Shalimar Bagh,Delhi"}, {"code": "H00139", "name": "Fortis Hospital,Vasant Kunj,Delhi"}, {"code": "H00140", "name": "Himalayan Institute of Medical Sciences (HIMS),Dehradun"}, {"code": "H00141", "name": "Indian Spinal Injuries Centre (ISIC),Vasant Kunj,Delhi"}, {"code": "H00142", "name": "International Oncology Services Pvt Ltd, Noida"}, {"code": "H00143", "name": "Kalawati Saran Children’s Hospital (KSCH), Delhi"}, {"code": "H00144", "name": "Manipal Hospitals,Dwarka"}, {"code": "H00145", "name": "Max Medcentre, Lajpat Nagar, Delhi"}, {"code": "H00146", "name": "Max Super Speciality Hospital, Dwarka"}, {"code": "H00147", "name": "Max Super Speciality Hospital, Patparganj"}, {"code": "H00148", "name": "Max Super Speciality Hospital, Saket"}, {"code": "H00149", "name": "Max Super Speciality Hospital, Sector-128, Noida"}, {"code": "H00150", "name": "Max Super Speciality Hospital, Shalimar Bagh"}, {"code": "H00151", "name": "Max Super Speciality Hospital, Vaishali"}, {"code": "H00152", "name": "Medanta Super Speciality Hospital, Noida"}, {"code": "H00153", "name": "Metro Hospital and Cancer Institute,Preet Vihar,Delhi"}, {"code": "H00154", "name": "Rainbow Childrens Hospital,Delhi"}, {"code": "H00155", "name": "Rajiv Gandhi Cancer Institute and Research Centre (RGCIRC),Delhi"}, {"code": "H00156", "name": "Sir Ganga Ram Hospital (SGRH),Rajendra Nagar,Delhi"}, {"code": "H00157", "name": "Sri Balaji Action Medical Institute,Delhi"}, {"code": "H00159", "name": "VMMC & Safdarjung Hospital, New Delhi"}, {"code": "H00158", "name": "Venkateshwar Hospital,Dwarka,Delhi"}, {"code": "H00160", "name": "Yashoda Super Speciality Hospital ,Kaushambi,Ghaziabad"}, {"code": "H00161", "name": "Yatharth Hospital, Noida Extension"}], "ERNAKULAM": [{"code": "H00162", "name": "Amala Institute of Medical Sciences (AIMS),THRISSUR"}, {"code": "H00163", "name": "Amrita Institute of Medical Sciences (AIMS),Kochi"}, {"code": "H00164", "name": "Apollo Hospitals, Angamaly"}, {"code": "H00165", "name": "Aster Medcity,Cheranallur,Kochi"}, {"code": "H00166", "name": "Ernakulam Medical Centre (EMC) ,Palarivattom, Ernakulam"}, {"code": "H00167", "name": "General Hospital Ernakulam,Kochi"}, {"code": "H00168", "name": "Government Medical College Hospital (GMCH),Thrissur"}, {"code": "H00169", "name": "Government TD Medical College Hospital,Alappuzha"}, {"code": "H00170", "name": "Lisie Hospital, Ernakulam"}, {"code": "H00171", "name": "Medical Trust Hospital, Ernakulam,Kochi"}, {"code": "H00172", "name": "Prathyasha Cancer Centre,CHERTHALA"}, {"code": "H00173", "name": "Rajagiri Hospital,Aluva, Ernakulam"}, {"code": "H00174", "name": "Thangam Hospital, Palakkad"}, {"code": "H00175", "name": "VPS Lakeshore Hospital,Ernakulam"}], "GURUGRAM": [{"code": "H00176", "name": "Aadhar Hospital,Hissar"}, {"code": "H00177", "name": "Accord Superspeciality Hospital,Faridabad"}, {"code": "H00178", "name": "American Oncology Institute (AOI),Gurugram"}, {"code": "H00179", "name": "American Oncology Institute (AOI),Hisar"}, {"code": "H00180", "name": "Artemis Hospital, Gurugram"}, {"code": "H00181", "name": "Fortis Hospital, Faridabad"}, {"code": "H00182", "name": "Fortis Hospital, Manesar"}, {"code": "H00183", "name": "Fortis Hospital,Gurugram"}, {"code": "H00184", "name": "Jindal Hospital,Hisar"}, {"code": "H00185", "name": "Manipal Hospital, Palam Vihar, Gurugram"}, {"code": "H00186", "name": "Marengo Asia Hospitals, Gurugram"}, {"code": "H00187", "name": "Marengo Asian Institute of Medical Sciences,Faridabad"}, {"code": "H00188", "name": "Medanta Medicity,Gurugram"}, {"code": "H00189", "name": "Metro Heart Institute with Multispecialty, Faridabad"}, {"code": "H00190", "name": "Narayana Superspeciality Hospital, Gurugram"}, {"code": "H00191", "name": "Pandit Bhagwat Dayal Sharma Post Graduate Institute of Medical Sciences(PGIMS,Rohtak)"}, {"code": "H00192", "name": "Paras Hospital, Gurugram"}, {"code": "H00193", "name": "Sarvodaya Hospital, Faridabad"}, {"code": "H00194", "name": "Shanti Devi GI Institute,Hisar"}], "GUWAHATI": [{"code": "H00195", "name": "ACCF (Assam Cancer Care Foundation) Centre,Barpeta"}, {"code": "H00196", "name": "ACCF (Assam Cancer Care Foundation) Centre,Darrang"}, {"code": "H00197", "name": "ACCF (Assam Cancer Care Foundation) Centre,Dibrugarh"}, {"code": "H00198", "name": "ACCF (Assam Cancer Care Foundation) Centre,Jorhat"}, {"code": "H00199", "name": "ACCF (Assam Cancer Care Foundation) Centre,Kokrajhar"}, {"code": "H00200", "name": "ACCF (Assam Cancer Care Foundation) Centre,Tezpur"}, {"code": "H00201", "name": "AIIMS,Guwahati"}, {"code": "H00202", "name": "Apollo Hospitals, Guwahati"}, {"code": "H00203", "name": "Civil Hospital ,Shillong"}, {"code": "H00204", "name": "Dr. Bhubaneswar Borooah Cancer Institute,Guwahati"}, {"code": "H00205", "name": "Gauhati Medical College and Hospital (GMCH),Guwahati"}, {"code": "H00206", "name": "Guwahati Metro Hospital,Khanapara,Guwahati"}, {"code": "H00207", "name": "Health City Hospital, Guwahati"}, {"code": "H00208", "name": "Medicity – Aditya Centre,Guwahati"}, {"code": "H00209", "name": "Narayana Superspeciality Hospital, Guwahati"}, {"code": "H00210", "name": "North Eastern Indira Gandhi Regional Institute of Health and Medical Sciences (NEIGRIHMS) ,Shillong"}, {"code": "H00211", "name": "State Cancer Institute (SCI), Guwahati"}], "HYDERABAD": [{"code": "H00213", "name": "AIG Hospitals,Banjara Hills,Hyderabad"}, {"code": "H00214", "name": "AIG Hospitals,Gachibowli,Hyderabad"}, {"code": "H00215", "name": "AIG Hospitals,Somajiguda,Hyderabad"}, {"code": "H00216", "name": "American Oncology Institute (AOI), Hyderabad"}, {"code": "H00217", "name": "American Oncology Institute (AOI),Hyderabad"}, {"code": "H00218", "name": "Apollo Hospitals, Hyderabad"}, {"code": "H00219", "name": "Basavatarakam Indo-American Cancer Hospital & Research Institute,Hyderabad"}, {"code": "H00220", "name": "CARE Hospitals, Hyderabad"}, {"code": "H00221", "name": "CION Cancer Clinic, Hyderabad"}, {"code": "H00222", "name": "Continental Hospitals,Gachibowli, Hyderabad,"}, {"code": "H00223", "name": "Durgabai Deshmukh Renova Cancer Centre,Hyderabad"}, {"code": "H00212", "name": "Government General Hospital (GGH),Kurnool"}, {"code": "H00225", "name": "KIMS Hospittals,Begumpet,Hyderabad"}, {"code": "H00226", "name": "KIMS Hospittals,Gachibowli,Hyderabad"}, {"code": "H00227", "name": "KIMS Hospittals,Secundrabad,Hyderabad"}, {"code": "H00224", "name": "Kamineni Hospitals,Hyderabad"}, {"code": "H00229", "name": "MNJ Hospital, Hyderabad"}, {"code": "H00228", "name": "Medicover Hospitals,Hi-Tech City,Hyderabad"}, {"code": "H00230", "name": "Nizam's Institute of Medical Sciences,Hyderabad"}, {"code": "H00231", "name": "Omega Hospital,Banjara Hills,Hyderabad"}, {"code": "H00232", "name": "Omega Hospital,Gachibowli,Hyderabad"}, {"code": "H00233", "name": "Omega Hospital,Kurnool"}, {"code": "H00234", "name": "Prathima Cancer Institute, Warangal"}, {"code": "H00235", "name": "Rainbow Childrens Hospital,Hyderabad"}, {"code": "H00236", "name": "Renova Bannu Hospitals,Hanamkonda,Warangal"}, {"code": "H00237", "name": "Renova Bibi Cancer Hospital,Malakpet, Hyderabad"}, {"code": "H00238", "name": "Renova Century Hospital,Banjara Hills, Hyderabad"}, {"code": "H00239", "name": "Renova Soumya Cancer Hospital,Secunderabad, Hyderabad"}, {"code": "H00240", "name": "Sindhu Hospital, Hyderabad"}, {"code": "H00241", "name": "Star Hospitals, Nanakramguda"}, {"code": "H00242", "name": "Yashoda Hospital,Somajiguda"}, {"code": "H00243", "name": "Yashoda Hospitals,Malakpet"}, {"code": "H00244", "name": "Yashoda Super Specialty Hospital,Secunderabad"}], "IMPHAL": [{"code": "H00245", "name": "American Oncology Institute (AOI),Imphal"}, {"code": "H00246", "name": "Atal Bihari Vajpayee Regional Cancer Centre (ABVRCC),Agartala"}, {"code": "H00247", "name": "Cachar Cancer Hospital and Research Centre (CCHRC),Silchar"}, {"code": "H00248", "name": "ILS Hospitals, Agartala"}, {"code": "H00249", "name": "Karkinos Manipur Cancer Institute and Research Centre,Imphal"}, {"code": "H00250", "name": "Regional Cancer Centre,Mizoram State Cancer Institute (MSCI) Aizawl"}, {"code": "H00251", "name": "Regional Institute of Medical Sciences,Imphal"}, {"code": "H00252", "name": "Silchar Cancer Centre (ACCF, Silchar)"}], "INDORE": [{"code": "H00253", "name": "Apollo Hospitals, Indore"}, {"code": "H00255", "name": "CARE CHL Hospitals, Indore"}, {"code": "H00254", "name": "Cancer Hospital & Research Institute, Gwalior"}, {"code": "H00256", "name": "Choithram Hospital and Research Centre,Indore"}, {"code": "H00257", "name": "HCG Cancer Hospital - (Phadnis Colony, Indore)"}, {"code": "H00258", "name": "International Oncology Cancer Institute (IOCI), Indore"}, {"code": "H00259", "name": "Kokilaben Dhirubhai Ambani Hospital (KDAH) ,Indore"}, {"code": "H00263", "name": "MY Hospital, Indore"}, {"code": "H00260", "name": "Maniyar Onco Center,Indore"}, {"code": "H00261", "name": "Medanta Super Specialty Hospital, Indore"}, {"code": "H00262", "name": "My Health Care Cancer Clinic,Gwalior"}, {"code": "H00264", "name": "Shalby Hospital,Indore"}, {"code": "H00265", "name": "Shanti Avedna Kendra Trust ,Indore"}, {"code": "H00266", "name": "Singhvi Blood Center,Indore"}, {"code": "H00267", "name": "Sri Aurobindo Institute of Medical Sciences,Indore"}, {"code": "H00268", "name": "Vishesh Jupiter Hospital,Indore"}], "JAIPUR": [{"code": "H00269", "name": "AIIMS,Jaipur"}, {"code": "H00270", "name": "Apex Hospitals,Malviya Nagar,Jaipur"}, {"code": "H00271", "name": "Bhagwan Mahaveer Cancer Hospital and Research Centre (BMCHRC),Jaipur"}, {"code": "H00272", "name": "Fortis Hospital,Jaipur"}, {"code": "H00273", "name": "GBH American Hospital ,Udaipur"}, {"code": "H00274", "name": "HCG Cancer Centre Mansarovar, Jaipur"}, {"code": "H00275", "name": "JNU Hospital, Jaipur"}, {"code": "H00276", "name": "Maharao Bhim Singh Hospital (MBS Hospital),GMC ,Kota"}, {"code": "H00277", "name": "Mahatma Gandhi University of Medical Sciences & Technology (MGUMST),Jaipur"}, {"code": "H00278", "name": "Manipal Hospital,Jaipur"}, {"code": "H00280", "name": "NIMS Heart and Brain Hospital, Jaipur"}, {"code": "H00279", "name": "Narayana Multispeciality Hospital, Jaipur"}, {"code": "H00281", "name": "Nizam's Institute of Medical Sciences,Jaipur"}, {"code": "H00282", "name": "Pacific Medical College & Hospital (PMCH),Udaipur"}, {"code": "H00283", "name": "RHL Renova Cancer Centre, Jaipur"}, {"code": "H00284", "name": "RNT Medical College & Hospital,Udaipur"}, {"code": "H00285", "name": "Santokba Durlabhji Memorial Hospital (SDMH), Jaipur"}, {"code": "H00286", "name": "Sawai Man Singh (SMS) Hospital,Jaipur"}, {"code": "H00287", "name": "Shalby Hospital,Jaipur"}], "KOLHAPUR": [{"code": "H00288", "name": "Apple Saraswati Multispeciality Hospital, Kolhapur"}, {"code": "H00289", "name": "Aster Aadhar Hospital,Kolhapur"}, {"code": "H00290", "name": "Bharati Vidyapeeth Medical College,Sangli"}, {"code": "H00291", "name": "Galaxy Hospital, Kolhapur"}, {"code": "H00292", "name": "Goa Medical College & Hospital (GMC), Bambolim, Goa"}, {"code": "H00293", "name": "Kolhapur Cancer Centre (KCC) – Gokul Shirgaon, Kolhapur"}, {"code": "H00294", "name": "Kolhapur Institute of Orthopaedics & Trauma),Kolhapur"}, {"code": "H00295", "name": "Manipal Hospital,Goa"}, {"code": "H00296", "name": "Maniyar Onco Center,Kolhapur"}, {"code": "H00297", "name": "Onco Life Cancer Centre, Satara"}, {"code": "H00298", "name": "Siddhivinayak Ganapati Cancer Hospital,Miraj"}, {"code": "H00299", "name": "Star Superspeciality Clinic & Hospital,Kolhapur"}], "KOLKATA": [{"code": "H00300", "name": "Apollo Hospitals, Kolkata"}, {"code": "H00301", "name": "Calcutta Medical College & Hospital,Kolkata"}, {"code": "H00302", "name": "Chittaranjan National Cancer Institute (CNCI), Hazra"}, {"code": "H00303", "name": "Chittaranjan National Cancer Institute (CNCI), New Town,Kolkata"}, {"code": "H00304", "name": "HCG EKO Cancer Centre ,Kolkata"}, {"code": "H00305", "name": "Manipal Hospitals,Mukundapur"}, {"code": "H00306", "name": "Narayana Superspeciality Hospital, Howrah"}, {"code": "H00307", "name": "Netaji Subhas Chandra Bose Cancer Hospital,Kolkata"}, {"code": "H00308", "name": "Nil Ratan Sircar (NRS) Medical College and Hospital,Kolkata"}, {"code": "H00309", "name": "Peerless Hospital & B.K. Roy Research Center, Kolkata"}, {"code": "H00310", "name": "Rabindranath Tagore International Institute of Cardiac Sciences (RTIICS), Kolkata"}, {"code": "H00311", "name": "Ruby General Hospital, Kolkata"}, {"code": "H00557", "name": "SSKM Hospital (IPGMER), Kolkata"}, {"code": "H00558", "name": "Saroj Gupta Cancer Centre and Research Institute (SGCCRI),Thakurpukur"}, {"code": "H00556", "name": "Tata Medical Center,Kolkata"}], "LUCKNOW": [{"code": "H00314", "name": "Apollo Medics,Lucknow"}, {"code": "H00312", "name": "Charak Hospital & Research Centre,Lucknow"}, {"code": "H00315", "name": "Dr. O.P. Chaudhary Hospital and Research Center,Lucknow"}, {"code": "H00316", "name": "Dr. Ram Manohar Lohia Institute of Medical Sciences,Lucknow"}, {"code": "H00317", "name": "HIMS Barabanki ,Safedabad"}, {"code": "H00313", "name": "J. K. Cancer Institute (JKCI),Kanpur"}, {"code": "H00318", "name": "Kalyan Singh Super Speciality Cancer Institute (KSSSCI),Lucknow"}, {"code": "H00319", "name": "King George's Medical University (KGMU) ,Lucknow"}, {"code": "H00320", "name": "Lucknow Cancer Institute (LCI)"}, {"code": "H00321", "name": "Max Super Speciality Hospital, Lucknow"}, {"code": "H00322", "name": "Medanta Super Speciality Hospital, Lucknow"}, {"code": "H00323", "name": "Paras Yash Kothari Hospital,Kanpur"}, {"code": "H00324", "name": "Regency Hospital, Lucknow"}, {"code": "H00325", "name": "Royal Cancer Institute & Research Centre,Kanpur"}, {"code": "H00326", "name": "Sanjay Gandhi Postgraduate Institute of Medical Sciences,Lucknow"}, {"code": "H00327", "name": "Thangam Cancer Center,Kanpur"}], "LUDHIANA": [{"code": "H00329", "name": "AIIMS,Bathinda"}, {"code": "H00328", "name": "Advanced Cancer Institute (ACI), Bathinda"}, {"code": "H00330", "name": "American Oncology Institute (AOI),Jalandhar"}, {"code": "H00331", "name": "American Oncology Institute (AOI),Ludhiana"}, {"code": "H00332", "name": "Bansal Hospital & Cancer Centre,Bathinda"}, {"code": "H00333", "name": "Bhargava Advanced Gyne Surgery Cancer Centre,Jalandhar"}, {"code": "H00334", "name": "Christian Medical College,Ludhiana"}, {"code": "H00335", "name": "Fortis Hospital,Ludhiana"}, {"code": "H00336", "name": "Govt. Medical College,Patiala"}, {"code": "H00337", "name": "Guru Gobind Singh Medical College and Hospital (GGSMCH), Faridkot"}, {"code": "H00338", "name": "Homi Bhabha Cancer Hospital, Sangrur"}, {"code": "H00339", "name": "Max Hospital,Bathinda"}, {"code": "H00340", "name": "Mohandai Oswal Hospital,Ludhiana"}, {"code": "H00341", "name": "Patel Hospital,Jalandhar"}], "MADURAI": [{"code": "H00342", "name": "Annai Velankanni Multispeciality Hospital,Tirunelveli"}, {"code": "H00343", "name": "Apollo Hospitals, Madurai"}, {"code": "H00344", "name": "Devaki Speciality Hospital, Madurai"}, {"code": "H00345", "name": "GD Super Speciality Hospital,Mayiladuthurai"}, {"code": "H00346", "name": "Government Rajaji Hospital (GRH),Madurai"}, {"code": "H00347", "name": "Kauvery Cancer Institute,Trichy"}, {"code": "H00348", "name": "Meenakshi Mission Hospital & Research Centre (MMHRC),Madurai"}, {"code": "H00349", "name": "Mohan’s Medicity Hospital, Madurai"}, {"code": "H00350", "name": "Sree Velsanth Cancer Care Centre,Tirunelveli"}, {"code": "H00351", "name": "Vellammal Hospitals,Madurai"}, {"code": "H00352", "name": "Venkateswara Hospital,Madurai"}, {"code": "H00353", "name": "Viswanathan Hospital, Namakkal,Trichy"}], "MANGALURU": [{"code": "H00354", "name": "AJ Hospital & Research Centre, Mangalore (Karnataka)"}, {"code": "H00355", "name": "Father Muller Medical College Hospital,Kankanady,Mangalore"}, {"code": "H00356", "name": "HCG Suchirayu Hospital, Hubli"}, {"code": "H00359", "name": "KLE Society Hospitals in Belagavi (Belgaum), Karnataka"}, {"code": "H00360", "name": "KMC Hospital,Jyothi Circle ,Mangalore"}, {"code": "H00361", "name": "KS Hegde Hospital, Mangalore"}, {"code": "H00357", "name": "Kasturba Medical College (KMC) Hospital ,Attavar,Mangalore"}, {"code": "H00358", "name": "Kasturba Medical College (KMC), Manipal"}, {"code": "H00362", "name": "Mangalore Institute of Oncology (MIO)"}, {"code": "H00363", "name": "SDM College of Medical Sciences & Hospital, Dharwad"}, {"code": "H00364", "name": "Yenepoya Medical College Hospital, Mangalore"}], "MUMBAI": [{"code": "H00366", "name": "ACTREC, Tata Memorial Centre,Navi Mumbai"}, {"code": "H00367", "name": "Apollo Hospitals, Navi Mumbai"}, {"code": "H00368", "name": "Ashoka Medicover Hospital, Nashik"}, {"code": "H00369", "name": "Asian Cancer Institute Cumballa Hill Hospital,Mumbai"}, {"code": "H00370", "name": "Asian Institute of Medical Sciences,Dombivali"}, {"code": "H00371", "name": "B.N.D Onco Center,Dadar,Mumbai"}, {"code": "H00372", "name": "Bai Jerbai Wadia Hospital for Children,Mumbai"}, {"code": "H00373", "name": "Bhaktivedanta Hospital & Research Institute, Mira Road"}, {"code": "H00374", "name": "Bombay Hospital and Medical Research Centre,Mumbai"}, {"code": "H00375", "name": "Breach Candy Hospital, Mumbai"}, {"code": "H00376", "name": "Comprehensive Thalassemia Care, Paediatric Hematology‑Oncology & BMT Centre,Borivali East"}, {"code": "H00377", "name": "Dr. L. H. Hiranandani Hospital, Powai"}, {"code": "H00378", "name": "Fortis Hospital,Kalyan,Mumbai"}, {"code": "H00379", "name": "Fortis Hospital,Mulund,Mumbai"}, {"code": "H00380", "name": "HCG Cancer Hospital - (Borivali, Mumbai)"}, {"code": "H00381", "name": "HCG ICS Khubchandani Cancer Hospital - (Cooperage, Mumbai)"}, {"code": "H00382", "name": "Indian Cancer Treatment Centre,Dadar"}, {"code": "H00383", "name": "Indian Cancer Treatment Centre,Kalyan"}, {"code": "H00384", "name": "Indian Cancer Treatment Centre,Vashi"}, {"code": "H00385", "name": "Jaslok Hospital & Research Centre,Mumbai"}, {"code": "H00386", "name": "Jupiter Hospital,Thane,Mumbai"}, {"code": "H00387", "name": "KIMS Hospitals,Thane"}, {"code": "H00388", "name": "King Edward Memorial (KEM) Hospital, Parel"}, {"code": "H00389", "name": "Kokilaben Dhirubhai Ambani Hospital & Medical Research Institute,Andheri,Mumbai"}, {"code": "H00390", "name": "Kokilaben Dhirubhai Ambani Hospital & Medical Research Institute,Khoparkhairne,Mumbai"}, {"code": "H00391", "name": "Lilavati Hospital & Research Centre, Bandra, Mumbai"}, {"code": "H00365", "name": "Mahatma Gandhi Mission (MGM),New Bombay Hospital"}, {"code": "H00392", "name": "Mahatma Phule Charitable Trust Hospital,Mumbai"}, {"code": "H00393", "name": "Maniyar Onco Center,Grant Road,Borivali"}, {"code": "H00394", "name": "Maniyar Onco Center,Grant Road,Ghatkopar"}, {"code": "H00395", "name": "Maniyar Onco Center,Grant Road,Mulund"}, {"code": "H00396", "name": "Maniyar Onco Center,Grant Road,Mumbai"}, {"code": "H00397", "name": "Maniyar Onco Center,Grant Road,Thane"}, {"code": "H00398", "name": "Maniyar Onco Center,Grant Road,Vile Parle"}, {"code": "H00399", "name": "Nanavati Max Super Speciality Hospital,Mumbai"}, {"code": "H00400", "name": "P. D. Hinduja Hospital & Medical Research Centre,Mumbai"}, {"code": "H00401", "name": "S.L. Raheja Hospital,Mahim"}, {"code": "H00405", "name": "SRCC Children's Hospital,Mumbai"}, {"code": "H00402", "name": "Saifee Hospital, Mumbai"}, {"code": "H00403", "name": "Sion Hospital,Mumbai"}, {"code": "H00404", "name": "Sir H. N. Reliance Foundation Hospital,Girgaon,Mumbai"}, {"code": "H00406", "name": "Sushrut Hospital & Research Centre,Chembur, Mumbai"}, {"code": "H00407", "name": "Tata Hospital,Parel,Mumbai"}, {"code": "H00408", "name": "Wockhardt Hospital, Mumbai Central"}], "NAGPUR": [{"code": "H00409", "name": "AIIMS,Nagpur"}, {"code": "H00410", "name": "American Oncology Institute (AOI), Nagpur"}, {"code": "H00411", "name": "Bagdia Cancer Hospital,Akola"}, {"code": "H00412", "name": "Ganju Haematology Clinic & Hospital,Nagpur"}, {"code": "H00413", "name": "Government Medical College & Hospital (GMC), Nagpur"}, {"code": "H00414", "name": "HCG Nagpur Cancer Hospital - (Binaki, Nagpur)"}, {"code": "H00415", "name": "KIMS-Kingsway Hospitals,Nagpur"}, {"code": "H00416", "name": "Kokilaben Dhirubhai Ambani Hospital, Cancer Centre, Akola"}, {"code": "H00417", "name": "Maniyar Onco Center,Nagpur"}, {"code": "H00418", "name": "Max Super Speciality Hospital, Nagpur"}, {"code": "H00419", "name": "Shivganga Hospital,Miraj"}, {"code": "H00420", "name": "Wockhardt Hospital, Nagpur"}], "NASHIK": [{"code": "H00421", "name": "Apex Hospital, Nagpur"}, {"code": "H00422", "name": "Ashoka Medicover Hospital, Nashik"}, {"code": "H00423", "name": "Cancer Centers of America (CCA) ,Nashik"}, {"code": "H00424", "name": "HCG Manavata Cancer Centre,Nashik"}, {"code": "H00425", "name": "Maniyar Onco Center,Nashik"}, {"code": "H00426", "name": "Marathwada Hospital, Aurangabad"}, {"code": "H00427", "name": "Maxcure Hospital,Nashik"}, {"code": "H00429", "name": "NHC clinic,Nashik"}, {"code": "H00428", "name": "Namco Hospital,Nashik"}, {"code": "H00430", "name": "Six Sigma Medicare,Nashik"}], "PATNA": [{"code": "H00431", "name": "AIIMS,Patna"}, {"code": "H00432", "name": "Bhagwan Mahavir Manipal Hospital, Ranchi"}, {"code": "H00433", "name": "Brahmananda Narayana Multispeciality Hospital, Jamshedpur"}, {"code": "H00434", "name": "HCG Abdur Razzaque Ansari Cancer Hospital,Ranchi"}, {"code": "H00435", "name": "Indira Gandhi Institute of Medical Sciences (IGIMS),Patna"}, {"code": "H00436", "name": "Jay Prabha Medanta Super Specialty Hospital, Patna"}, {"code": "H00437", "name": "MTMH Hospital,Jamshedpur"}, {"code": "H00438", "name": "Paras HEC Hospital,Ranchi"}, {"code": "H00439", "name": "Paras HMRI Hospital,Patna"}, {"code": "H00440", "name": "Patna Medical College and Hospital (PMCH),Patna"}, {"code": "H00441", "name": "Rajendra Institute of Medical Sciences,Ranchi"}, {"code": "H00442", "name": "Ranchi Cancer Hospital & Research Centre,Ranchi"}], "PUNE": [{"code": "H00443", "name": "Aditya Birla Memorial Hospital (ABMH),Pune"}, {"code": "H00444", "name": "Apollo Hospitals, Pune"}, {"code": "H00445", "name": "Bharati Vidyapeeth's Hospital & Research Centre,Pune"}, {"code": "H00446", "name": "Deenanath Mangeshkar Hospital and Research Center,Pune"}, {"code": "H00447", "name": "Galaxy CARE Hospital, Pune"}, {"code": "H00448", "name": "Jupiter Hospital,Pune"}, {"code": "H00449", "name": "King Edward Memorial (KEM) Hospital, Rasta Peth, Pune"}, {"code": "H00450", "name": "Manipal Hospital, Baner,Pune"}, {"code": "H00451", "name": "Maniyar Onco Center,PCMC"}, {"code": "H00452", "name": "Maniyar Onco Center,Swargate"}, {"code": "H00453", "name": "Ruby Hall Clinic,Sasoon,Pune"}, {"code": "H00456", "name": "SANJEEVANI CANCER CENTRE, BARSHI"}, {"code": "H00454", "name": "Sahyadri Hosptial,Deccan Gymkhana"}, {"code": "H00455", "name": "Sahyadri Hosptial,Hadapsar"}], "RAIPUR": [{"code": "H00457", "name": "AIIMS,Raipur"}, {"code": "H00458", "name": "American Oncology Institute (AOI),Raipur"}, {"code": "H00459", "name": "Apollo Hospitals, Raipur"}, {"code": "H00460", "name": "Balco Medical Centre (BMC), Raipur"}, {"code": "H00461", "name": "Chhattisgarh Institute of Medical Sciences,Raipur"}, {"code": "H00462", "name": "Govt. Komaldev District Hospital,Kanker"}, {"code": "H00463", "name": "Indira Gandhi District Hospital,Korba"}, {"code": "H00467", "name": "MMI Narayana Superspeciality Hospital, Raipur"}, {"code": "H00464", "name": "Mahasamund District Hospital,GMH,Kharora"}, {"code": "H00465", "name": "Mekahara Hospital,Raipur"}, {"code": "H00466", "name": "Mittal Hospital,Pandri, Raipur"}, {"code": "H00468", "name": "Ramkrishna Care Hospital,Raipur"}, {"code": "H00469", "name": "Sanjeevani CBCC USA Cancer Hospital,Raipur"}, {"code": "H00470", "name": "Suyash Hospital,Raipur"}], "SRINAGAR (J&K)": [{"code": "H00472", "name": "American Oncology Institute (AOI),Jammu"}, {"code": "H00473", "name": "Cancer Centers of America, Amritsar"}, {"code": "H00474", "name": "Fortis Hospital,Amritsar"}, {"code": "H00471", "name": "Government Medical College (GMC), Amritsar"}, {"code": "H00475", "name": "Government Medical College (GMC), Jammu"}, {"code": "H00476", "name": "Govt. Medical College,Jammu"}, {"code": "H00477", "name": "Livasa Hospita,Amritsar"}, {"code": "H00478", "name": "Paras Hospital, Srinagar"}, {"code": "H00479", "name": "Sher-I-Kashmir Institute of Medical Sciences"}, {"code": "H00480", "name": "Shri Maharaja Hari Singh (SMHS) Hospital,Srinagar"}, {"code": "H00481", "name": "Shri Mata Vaishno Devi Narayana Superspeciality Hospital, Srinagar"}, {"code": "H00482", "name": "Sri Guru Ram Das (SGRD),Amritsar"}, {"code": "H00483", "name": "Super Speciality Hospital, GMC,Jammu"}, {"code": "H00484", "name": "Ujala Cygnus JK Medicity Hospital, Jammu"}, {"code": "H00485", "name": "Ujala Cygnus Kashmir Super Speciality Hospital, Srinagar"}], "SURAT": [{"code": "H00486", "name": "Bharat Cancer Hospital & Research Institute,Surat"}, {"code": "H00487", "name": "Blood & Cancer Institute (BCI), Surat"}, {"code": "H00488", "name": "HCG Cancer Centre,Vadodara"}, {"code": "H00489", "name": "Himalaya Cancer hospital,Vadodra"}, {"code": "H00490", "name": "Kiran Multi Super Speciality Hospital & Research Centre,Surat"}, {"code": "H00491", "name": "Lions Cancer Detection Centre Trust,Surat"}, {"code": "H00492", "name": "Omega JMX facility,Ring Road, Surat"}, {"code": "H00493", "name": "South Gujarat Hematology Oncology Centre,Surat"}, {"code": "H00494", "name": "Sterling Hospital,Surat"}, {"code": "H00495", "name": "Surat Oncology Center,Surat"}, {"code": "H00496", "name": "Velocity Multispeciality Hospital,Surat"}, {"code": "H00497", "name": "Zydus Super Speciality Hospital,Surat"}], "TRIVANDRUM": [{"code": "H00498", "name": "Believers Church Medical College Hospital (BCMCH),Thiruvalla"}, {"code": "H00499", "name": "Bharath Hospital,Kottayam"}, {"code": "H00500", "name": "Caritas Hospital, Kottayam"}, {"code": "H00501", "name": "Dr. KM Cherian Institute of Medical Sciences (KMC), Chengannur"}, {"code": "H00502", "name": "Government Medical College Hospital (GMCH),Arpookkara,Kottayam"}, {"code": "H00503", "name": "Government Medical College Hospital (MCH), Thiruvananthapuram"}, {"code": "H00504", "name": "Kerala Institute of Medical Sciences (KIMSHEALTH) ,Trivandrum"}, {"code": "H00505", "name": "MGM Muthoot Medical Centre, Kozhencherry"}, {"code": "H00507", "name": "NIMS Medicity, Neyyattinkara,Trivandrum"}, {"code": "H00506", "name": "Neyyar Medicity Hospital , Kattakada, Thiruvananthapuram"}, {"code": "H00509", "name": "PRS Hospital, Thiruvananthapuram,Kerala"}, {"code": "H00508", "name": "Parumala Hospital ,Pathanamthitta"}, {"code": "H00510", "name": "Pushpagiri Institute of Medical Sciences and Research Centre (MCH),Thiruvalla"}, {"code": "H00511", "name": "Regional Cancer Centre, Thiruvananthapuram"}, {"code": "H00512", "name": "Travancore Medicity Hospital, Kollam"}], "VARANASI": [{"code": "H00514", "name": "AIIMS,Gorakhpur"}, {"code": "H00515", "name": "Apex Super Speciality Hospital, Varanasi"}, {"code": "H00516", "name": "Banaras Hindu University (BHU),Varanasi"}, {"code": "H00517", "name": "Homi Bhabha Cancer Hospital, Varanasi"}, {"code": "H00513", "name": "Kamala Nehru Memorial Hospital (KNMH),Prayagraj"}, {"code": "H00518", "name": "Mahamana Pandit Madan Mohan Malaviya Cancer Centre,Varanasi"}, {"code": "H00519", "name": "Medicity Hospital & Research Centre (United Medicity) ,Prayagraj"}, {"code": "H00520", "name": "Regency Hospital, Lucknow"}, {"code": "H00521", "name": "Swaroop Rani Nehru Hospital (SRN Hospital),Prayagraj"}, {"code": "H00522", "name": "Synergy Superspeciality Hospital and Cancer Institute, Gorakhpur"}, {"code": "H00523", "name": "Ujala Cygnus Laxmi Super Speciality Hospital,Varanasi"}], "VIJAYAWADA": [{"code": "H00524", "name": "AIIMS, Mangalagiri"}, {"code": "H00525", "name": "American Cancer Centre,Vijaywada"}, {"code": "H00526", "name": "American Oncology Institute (AOI),Vijayawada"}, {"code": "H00527", "name": "Aster Ramesh Hospitals,Vijayawada"}, {"code": "H00528", "name": "Government General Hospital (GGH),Vijayawada"}, {"code": "H00529", "name": "HCG Curie City Cancer Centre,Vijayawada"}, {"code": "H00530", "name": "KIMS Hospital,Ongole"}, {"code": "H00531", "name": "KIMS-SIKHARA Hospitals,Guntur"}, {"code": "H00532", "name": "Manipal Super Specialty Hospital, Vijayawada"}, {"code": "H00533", "name": "Medicover Hospital, Vijayawada"}, {"code": "H00534", "name": "Not found"}, {"code": "H00535", "name": "Omega Hospitals,Guntur"}, {"code": "H00536", "name": "Rainbow Childrens Hospital,Hyderabad"}, {"code": "H00537", "name": "Sri Venkateswara Institute of Cancer Care & Advanced Research (SVICCAR), Tirupati"}, {"code": "H00538", "name": "Sri Venkateswara Institute of Medical Sciences (SVIMS),Tirupati"}], "VISHAKHAPATNAM": [{"code": "H00539", "name": "Apollo Hospitals, Vishakhapatnam"}, {"code": "H00540", "name": "CION Cancer Clinic, Vizag"}, {"code": "H00541", "name": "Delta Hospitals, Visakhapatnam"}, {"code": "H00544", "name": "GSL Medical College & General Hospital,Vizag"}, {"code": "H00542", "name": "Government General Hospital (GGH),Kakinada"}, {"code": "H00543", "name": "Great Eastern Medical School and Hospital (GEMS),Srikakulam"}, {"code": "H00545", "name": "HCG Cancer Hospital - (Chinnagadili, Visakhapatnam)"}, {"code": "H00546", "name": "Homi Bhabha Cancer Hospital and Research Centre,Vizag"}, {"code": "H00547", "name": "KIMS-ICON Hospital,Vizag"}, {"code": "H00548", "name": "King George Hospital (KGH),Visakhapatnam"}, {"code": "H00549", "name": "Konaseema Institute of Medical Sciences,Amalapuram"}, {"code": "H00553", "name": "MGM SevenHills Hospital,Vizag"}, {"code": "H00550", "name": "Mahatma Gandhi Cancer Hospital & Research Institute (MGCHRI), Visakhapatnam"}, {"code": "H00551", "name": "Medicover Hospital, Kakinada"}, {"code": "H00552", "name": "Medicover Hospitals,Vizag"}, {"code": "H00554", "name": "Omega Cancer Hospital,Vizag"}]};
+const TOTAL_STEPS = 7;
+let currentStep = 0;
+
+const HQ_REGION_ZONE = {
+  "AHMEDABAD":{"region":"North-East Zone","zone":"Ahmedabad/Jaipur-REGION"},
+  "BENGALURU":{"region":"South-West Zone","zone":"Bangalore-REGION"},
+  "BHOPAL":{"region":"North-East Zone","zone":"Bhopal-REGION"},
+  "BHUBNESHWAR":{"region":"North-East Zone","zone":"Kolkata-REGION"},
+  "CHANDIGARH":{"region":"North-East Zone","zone":"Chandigarh-REGION"},
+  "CHENNAI":{"region":"South-West Zone","zone":"Chennai-REGION"},
+  "COIMBATORE":{"region":"South-West Zone","zone":"Chennai-REGION"},
+  "DEHRADUN":{"region":"North-East Zone","zone":"Chandigarh-REGION"},
+  "DELHI":{"region":"North-East Zone","zone":"Delhi-REGION"},
+  "ERNAKULAM":{"region":"South-West Zone","zone":"Kerala-REGION"},
+  "GURUGRAM":{"region":"North-East Zone","zone":"Delhi-REGION"},
+  "GUWAHATI":{"region":"North-East Zone","zone":"Guwahati-REGION"},
+  "HYDERABAD":{"region":"South-West Zone","zone":"Hyderabad-REGION"},
+  "IMPHAL":{"region":"North-East Zone","zone":"Guwahati-REGION"},
+  "INDORE":{"region":"North-East Zone","zone":"Bhopal-REGION"},
+  "JAIPUR":{"region":"North-East Zone","zone":"Ahmedabad/Jaipur-REGION"},
+  "KOLHAPUR":{"region":"South-West Zone","zone":"Mumbai-REGION"},
+  "KOLKATA":{"region":"North-East Zone","zone":"Kolkata-REGION"},
+  "LUCKNOW":{"region":"North-East Zone","zone":"Lucknow-REGION"},
+  "LUDHIANA":{"region":"North-East Zone","zone":"Chandigarh-REGION"},
+  "MADURAI":{"region":"South-West Zone","zone":"Chennai-REGION"},
+  "MANGALURU":{"region":"South-West Zone","zone":"Bangalore-REGION"},
+  "MUMBAI":{"region":"South-West Zone","zone":"Mumbai-REGION"},
+  "NAGPUR":{"region":"South-West Zone","zone":"Mumbai-REGION"},
+  "NASHIK":{"region":"South-West Zone","zone":"Mumbai-REGION"},
+  "PATNA":{"region":"North-East Zone","zone":"Kolkata-REGION"},
+  "PUNE":{"region":"South-West Zone","zone":"Mumbai-REGION"},
+  "RAIPUR":{"region":"North-East Zone","zone":"Bhopal-REGION"},
+  "SRINAGAR (J&K)":{"region":"North-East Zone","zone":"Chandigarh-REGION"},
+  "SURAT":{"region":"South-West Zone","zone":"Ahmedabad/Jaipur-REGION"},
+  "TRIVANDRUM":{"region":"South-West Zone","zone":"Kerala-REGION"},
+  "VARANASI":{"region":"North-East Zone","zone":"Lucknow-REGION"},
+  "VIJAYAWADA":{"region":"South-West Zone","zone":"Hyderabad-REGION"},
+  "VISHAKHAPATNAM":{"region":"South-West Zone","zone":"Hyderabad-REGION"}
+};
+const state = {
+  kamName:'', empCode:'',
+  hq:'', region:'', zone:'', hospitalCode:'', hospitalName:'', newHospName:'', isNewHosp:false,
+  doctors:[{drName:'', wsfaCode:'', spec:''}],
+  month:'',
+  p:{her2:0,pacliall:0,kintsugi:0,cancrinase:0,supdeno:0},
+  a:{her2:0,pacliall:0,kintsugi:0,cancrinase:0,supdeno:0}
+};
+const chipState = {month:null};
+
+// ── INIT ──────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  // Populate HQ dropdown
+  const hqSel = document.getElementById('hqSelect');
+  Object.keys(HOSPITAL_DATA).sort().forEach(hq => {
+    const o = document.createElement('option');
+    o.value = hq; o.textContent = hq; hqSel.appendChild(o);
+  });
+  updateUI();
+  renderDoctors();
+  // Offline detection
+  window.addEventListener('online', () => document.getElementById('offlineBanner').classList.remove('show'));
+  window.addEventListener('offline', () => document.getElementById('offlineBanner').classList.add('show'));
+  if (!navigator.onLine) document.getElementById('offlineBanner').classList.add('show');
+});
+
+function onHQChange() {
+  const hq = document.getElementById('hqSelect').value;
+  state.hq = hq;
+  const rz = HQ_REGION_ZONE[hq] || {region:'', zone:''};
+  state.region = rz.region;
+  state.zone = rz.zone;
+  const rd = document.getElementById('regionDisplay');
+  const zd = document.getElementById('zoneDisplay');
+  if(rd) rd.value = rz.region;
+  if(zd) zd.value = rz.zone;
+  const hospSel = document.getElementById('hospitalSelect');
+  const hospField = document.getElementById('hospitalField');
+  hospSel.innerHTML = '<option value="">— Select Hospital —</option>';
+  if (hq) {
+    (HOSPITAL_DATA[hq] || []).forEach(h => {
+      const o = document.createElement('option');
+      o.value = h.code + '||' + h.name; o.textContent = h.name; hospSel.appendChild(o);
+    });
+    const o = document.createElement('option');
+    o.value = 'NEW'; o.textContent = '⊕ Other / New hospital (type below)';
+    hospSel.appendChild(o);
+    hospField.style.opacity = '1'; hospField.style.pointerEvents = 'auto';
+  } else {
+    hospField.style.opacity = '0.4'; hospField.style.pointerEvents = 'none';
+  }
+  document.getElementById('newHospField').style.display = 'none';
+  document.getElementById('newHospBanner').classList.remove('show');
+}
+
+function onHospitalChange() {
+  const val = document.getElementById('hospitalSelect').value;
+  const isNew = val === 'NEW';
+  document.getElementById('newHospField').style.display = isNew ? 'block' : 'none';
+  document.getElementById('newHospBanner').classList.toggle('show', isNew);
+}
+
+function selectChip(group, value, el) {
+  // Only handles 'month' — doctor chips use selectDocChip()
+  chipState[group] = value;
+  document.querySelectorAll('#monthChips .chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('err_month').classList.remove('show');
+}
+
+// ── MULTI-DOCTOR ──────────────────────────────────────────
+function renderDoctors() {
+  const container = document.getElementById('doctorListBody');
+  if (!container) return;
+  const specs = ['MO','Onco-Surgeon','Radiation Oncology','Clinical Oncology'];
+  const ba = [{v:'Yes',l:'✅ Yes'},{v:'No',l:'❌ No'}];
+  container.innerHTML = state.doctors.map((doc, i) => {
+    const canRemove = state.doctors.length > 1;
+    return `
+    <div class="doctor-card-entry" id="docEntry${i}">
+      <div class="doctor-num-header">
+        <span>🩺 Doctor ${i + 1}</span>
+        ${canRemove ? `<button class="remove-dr-btn" onclick="removeDoctor(${i})">✕ Remove</button>` : ''}
+      </div>
+      <div class="doctor-entry-body">
+        <div class="field">
+          <label>Dr Name <span class="req">*</span></label>
+          <input type="text" id="drName_${i}" placeholder="Dr. Full Name" autocomplete="off"
+            value="${esc(doc.drName)}"
+            oninput="state.doctors[${i}].drName=this.value.trim()"/>
+          <div class="err-msg" id="err_drName_${i}">Please enter the doctor's name</div>
+        </div>
+        <div class="field">
+          <label>WSFA Code</label>
+          <input type="text" id="wsfaCode_${i}" placeholder="e.g. WS12345" autocomplete="off"
+            value="${esc(doc.wsfaCode)}"
+            oninput="state.doctors[${i}].wsfaCode=this.value.trim()"/>
+          <div class="field-hint">Whole Sale Franchise Agreement code — enter if applicable.</div>
+        </div>
+        <div class="field">
+          <label>Speciality <span class="req">*</span></label>
+          <div class="chip-group" id="specChips_${i}">
+            ${specs.map(s => `<div class="chip${doc.spec===s?' selected':''}" onclick="selectDocChip(${i},'spec','${s}',this)">${s}</div>`).join('')}
+          </div>
+          <div class="err-msg" id="err_spec_${i}">Please select a speciality</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addDoctor() {
+  state.doctors.push({drName:'', wsfaCode:'', spec:''});
+  renderDoctors();
+  setTimeout(() => {
+    const entries = document.querySelectorAll('.doctor-card-entry');
+    if (entries.length) entries[entries.length-1].scrollIntoView({behavior:'smooth', block:'start'});
+  }, 60);
+}
+
+function removeDoctor(i) {
+  if (state.doctors.length <= 1) return;
+  state.doctors.splice(i, 1);
+  renderDoctors();
+}
+
+function selectDocChip(i, field, val, el) {
+  state.doctors[i][field] = val;
+  const groupId = `specChips_${i}`;
+  document.querySelectorAll(`#${groupId} .chip`).forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  const errEl = document.getElementById(`err_${field}_${i}`);
+  if (errEl) errEl.classList.remove('show');
+}
+
+// ── NAVIGATION ────────────────────────────────────────────
+function updateUI() {
+  const pct = ((currentStep + 1) / TOTAL_STEPS * 100).toFixed(0);
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('stepLabel').textContent = `Step ${currentStep + 1} of ${TOTAL_STEPS}`;
+  for (let i = 0; i < TOTAL_STEPS; i++) {
+    const d = document.getElementById('dot' + i);
+    d.classList.remove('active', 'done');
+    if (i < currentStep) d.classList.add('done');
+    else if (i === currentStep) d.classList.add('active');
+  }
+  const btnBack = document.getElementById('btnBack');
+  const btnNext = document.getElementById('btnNext');
+  const btnSubmit = document.getElementById('btnSubmit');
+  btnBack.style.display = currentStep > 0 ? 'block' : 'none';
+  btnNext.style.display = currentStep < TOTAL_STEPS - 1 ? 'block' : 'none';
+  btnSubmit.style.display = currentStep === TOTAL_STEPS - 1 ? 'block' : 'none';
+  if (currentStep === TOTAL_STEPS - 1) buildSummary();
+}
+
+function showStep(n) {
+  for (let i = 0; i < TOTAL_STEPS; i++) {
+    const el = document.getElementById('step' + i);
+    if (el) el.style.display = i === n ? 'block' : 'none';
+  }
+  currentStep = n;
+  updateUI();
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function validate() {
+  let ok = true;
+  const show = (id, msg) => {
+    const el = document.getElementById(id);
+    el.textContent = msg || el.textContent;
+    el.classList.add('show'); ok = false;
+  };
+  const hide = id => document.getElementById(id).classList.remove('show');
+  const mark = (id, valid) => {
+    const el = document.getElementById(id);
+    if (el) { el.classList.toggle('input-error', !valid); }
+  };
+
+  if (currentStep === 0) {
+    const kn = document.getElementById('kamName').value.trim();
+    const ec = document.getElementById('empCode').value.trim();
+    kn ? (hide('err_kamName'), mark('kamName', true)) : show('err_kamName');
+    ec ? (hide('err_empCode'), mark('empCode', true)) : show('err_empCode');
+    mark('kamName', !!kn); mark('empCode', !!ec);
+  }
+  if (currentStep === 1) {
+    const hq = document.getElementById('hqSelect').value;
+    const hosp = document.getElementById('hospitalSelect').value;
+    const newH = document.getElementById('newHospName').value.trim();
+    hq ? hide('err_hq') : show('err_hq'); mark('hqSelect', !!hq);
+    hosp ? hide('err_hospital') : show('err_hospital'); mark('hospitalSelect', !!hosp);
+    if (hosp === 'NEW' && !newH) show('err_newHosp');
+    else hide('err_newHosp');
+    if (hosp === 'NEW') mark('newHospName', !!newH);
+  }
+  if (currentStep === 2) {
+    state.doctors.forEach((doc, i) => {
+      const nameEl = document.getElementById(`drName_${i}`);
+      const nameVal = nameEl ? nameEl.value.trim() : doc.drName;
+      if (!nameVal) {
+        const e = document.getElementById(`err_drName_${i}`);
+        if (e) e.classList.add('show');
+        if (nameEl) nameEl.classList.add('input-error');
+        ok = false;
+      } else {
+        const e = document.getElementById(`err_drName_${i}`);
+        if (e) e.classList.remove('show');
+        if (nameEl) nameEl.classList.remove('input-error');
+      }
+      if (!doc.spec) {
+        const e = document.getElementById(`err_spec_${i}`); if (e) e.classList.add('show'); ok = false;
+      } else {
+        const e = document.getElementById(`err_spec_${i}`); if (e) e.classList.remove('show');
+      }
+    });
+  }
+  if (currentStep === 3) {
+    chipState.month ? hide('err_month') : show('err_month');
+  }
+  return ok;
+}
+
+function collectState() {
+  if (currentStep >= 0) { state.kamName = document.getElementById('kamName').value.trim(); state.empCode = document.getElementById('empCode').value.trim(); }
+  if (currentStep >= 1) {
+    state.hq = document.getElementById('hqSelect').value;
+  const _rz = HQ_REGION_ZONE[state.hq]||{region:'',zone:''}; state.region=_rz.region; state.zone=_rz.zone;
+    const hv = document.getElementById('hospitalSelect').value;
+    if (hv === 'NEW') { state.hospitalCode = ''; state.hospitalName = 'Other / New hospital (type below)'; state.isNewHosp = true; }
+    else if (hv) { const [code, ...nameParts] = hv.split('||'); state.hospitalCode = code; state.hospitalName = nameParts.join('||'); state.isNewHosp = false; }
+    state.newHospName = document.getElementById('newHospName').value.trim();
+  }
+  if (currentStep >= 2) {
+    // oninput/selectDocChip keep state.doctors in sync; flush text inputs to be safe
+    state.doctors.forEach((doc, i) => {
+      const nameEl = document.getElementById(`drName_${i}`);
+      if (nameEl) doc.drName = nameEl.value.trim();
+      const wsfaEl = document.getElementById(`wsfaCode_${i}`);
+      if (wsfaEl) doc.wsfaCode = wsfaEl.value.trim();
+    });
+  }
+  if (currentStep >= 3) { state.month = chipState.month || ''; }
+  if (currentStep >= 4) { const ids = ['her2','pacliall','kintsugi','cancrinase','supdeno']; ids.forEach(b => { state.p[b] = parseInt(document.getElementById('p_'+b).value)||0; }); }
+  if (currentStep >= 5) { const ids = ['her2','pacliall','kintsugi','cancrinase','supdeno']; ids.forEach(b => { state.a[b] = parseInt(document.getElementById('a_'+b).value)||0; }); }
+}
+
+function nextStep() {
+  if (!validate()) return;
+  collectState();
+  showStep(currentStep + 1);
+}
+function prevStep() { showStep(currentStep - 1); }
+
+// ── SUMMARY ───────────────────────────────────────────────
+function buildSummary() {
+  collectState();
+  const brands = ['Her2 P','Pacliall','Kintsugi','Cancrinase','Supdeno'];
+  const bkeys = ['her2','pacliall','kintsugi','cancrinase','supdeno'];
+  document.getElementById('summaryBody').innerHTML = `
+    <div class="summary-section">
+      <div class="summary-label">KAM</div>
+      <div class="summary-row"><span class="summary-key">Name</span><span class="summary-val">${esc(state.kamName)}</span></div>
+      <div class="summary-row"><span class="summary-key">Employee Code</span><span class="summary-val">${esc(state.empCode)}</span></div>
+    </div>
+    <div class="summary-section">
+      <div class="summary-label">Hospital</div>
+      <div class="summary-row"><span class="summary-key">HQ / City</span><span class="summary-val">${esc(state.hq)}</span></div>
+      <div class="summary-row"><span class="summary-key">Hospital</span><span class="summary-val">${state.isNewHosp ? '⚠ NEW: '+esc(state.newHospName) : esc(state.hospitalName)}</span></div>
+      <div class="summary-row"><span class="summary-key">Region</span><span class="summary-val">${esc(state.region) || '—'}</span></div>
+      <div class="summary-row"><span class="summary-key">Zone</span><span class="summary-val">${esc(state.zone) || '—'}</span></div>
+      ${state.hospitalCode ? `<div class="summary-row"><span class="summary-key">Hospital Code</span><span class="summary-val" style="color:var(--primary)">${state.hospitalCode}</span></div>` : ''}
+    </div>
+    <div class="summary-section">
+      <div class="summary-label">Doctors (${state.doctors.length})</div>
+      ${state.doctors.map((doc, i) => `
+      <div class="doc-summary-entry">
+        <div class="doc-summary-num">Doctor ${i + 1}</div>
+        <div class="summary-row"><span class="summary-key">Name</span><span class="summary-val">${esc(doc.drName)}</span></div>
+        ${doc.wsfaCode ? `<div class="summary-row"><span class="summary-key">WSFA Code</span><span class="summary-val" style="color:var(--accent);font-weight:700">${esc(doc.wsfaCode)}</span></div>` : ''}
+        <div class="summary-row"><span class="summary-key">Speciality</span><span class="summary-val">${esc(doc.spec)}</span></div>
+        
+      </div>`).join('')}
+      <div class="summary-row" style="margin-top:10px"><span class="summary-key">Reporting Month</span><span class="summary-val">${esc(state.month)}</span></div>
+    </div>
+    <div class="summary-section">
+      <div class="summary-label">Units</div>
+      <table class="units-table">
+        <thead><tr><th>Brand</th><th style="text-align:right">Planned</th><th style="text-align:right">Actual</th></tr></thead>
+        <tbody>${brands.map((b,i) => `<tr><td class="brand-col">${b}</td><td class="num-col">${state.p[bkeys[i]]}</td><td class="num-col" style="color:var(--accent)">${state.a[bkeys[i]]}</td></tr>`).join('')}</tbody>
+      </table>
+    </div>`;
+}
+
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+
+// ── SUBMIT ────────────────────────────────────────────────
+async function submitForm() {
+  collectState();
+  const btn = document.getElementById('btnSubmit');
+  const btnBack = document.getElementById('btnBack');
+  btn.disabled = true; btnBack.disabled = true;
+
+  const ref = 'OFP-' + Date.now().toString(36).toUpperCase();
+  const timestamp = new Date().toISOString();
+  const url = GOOGLE_SCRIPT_URL;
+  const isConfigured = url && url.startsWith('http');
+
+  // Common fields shared across all doctor rows
+  const common = {
+    timestamp, ref_code: ref,
+    kam_name: state.kamName,
+    employee_code: state.empCode,
+    hq_city: state.hq,
+        region: state.region,
+        zone: state.zone,
+    hospital_name: state.isNewHosp ? 'Other / New hospital (type below)' : state.hospitalName,
+    new_hospital_name: state.isNewHosp ? state.newHospName : '',
+    reporting_month: state.month,
+    total_doctors: state.doctors.length,
+    her2p_planned: state.p.her2,
+    pacliall_planned: state.p.pacliall,
+    kintsugi_planned: state.p.kintsugi,
+    cancrinase_planned: state.p.cancrinase,
+    supdeno_planned: state.p.supdeno,
+    her2p_actual: state.a.her2,
+    pacliall_actual: state.a.pacliall,
+    kintsugi_actual: state.a.kintsugi,
+    cancrinase_actual: state.a.cancrinase,
+    supdeno_actual: state.a.supdeno,
+  };
+
+  // One HTTP call (one Excel row) per doctor
+  for (let i = 0; i < state.doctors.length; i++) {
+    btn.innerHTML = `<span class="spinner"></span> Submitting ${i + 1}/${state.doctors.length}…`;
+    const doc = state.doctors[i];
+    const payload = {
+      ...common,
+      doctor_index: i + 1,
+      prescribing_dr_name: doc.drName,
+      wsfa_code: doc.wsfaCode,
+      speciality: doc.spec,
+    };
+
+    if (isConfigured) {
+      try {
+        const formBody = Object.keys(payload).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(payload[k])).join('&');
+        await fetch(url, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+          body: formBody
+        });
+      } catch(e) {
+        const q = JSON.parse(localStorage.getItem('ofp_queue') || '[]');
+        q.push({payload, ref, ts: Date.now()});
+        localStorage.setItem('ofp_queue', JSON.stringify(q));
+        console.warn('Queued for retry:', e.message);
+      }
+    } else {
+      console.log(`FORM PAYLOAD [Dr ${i+1}]:`, JSON.stringify(payload, null, 2));
+      const q = JSON.parse(localStorage.getItem('ofp_submissions') || '[]');
+      q.push({payload, ref, ts: Date.now()});
+      localStorage.setItem('ofp_submissions', JSON.stringify(q));
+    }
+  }
+
+  // Show success
+  btn.innerHTML = 'Submit ✓';
+  btn.disabled = false; btnBack.disabled = false;
+  document.getElementById('mainContent').querySelector('#step6').style.display = 'none';
+  document.getElementById('successScreen').classList.add('show');
+  document.getElementById('bottomNav').style.display = 'none';
+  document.getElementById('stepIndicators').style.display = 'none';
+  document.getElementById('refChip').textContent = 'Ref: ' + ref;
+
+  retryQueue();
+}
+
+async function retryQueue() {
+  const url = GOOGLE_SCRIPT_URL;
+  if (!url || !url.startsWith('http')) return;
+  const q = JSON.parse(localStorage.getItem('ofp_queue') || '[]');
+  if (!q.length) return;
+  const remaining = [];
+  for (const item of q) {
+    try {
+      await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(item.payload)});
+    } catch(e) { remaining.push(item); }
+  }
+  localStorage.setItem('ofp_queue', JSON.stringify(remaining));
+}
+
+function resetForm() {
+  // Reset text/select fields
+  document.getElementById('kamName').value='';
+  document.getElementById('empCode').value='';
+  document.getElementById('hqSelect').value=''; state.region=''; state.zone='';
+  const _rd = document.getElementById('regionDisplay'); if(_rd) _rd.value='';
+  const _zd = document.getElementById('zoneDisplay'); if(_zd) _zd.value='';
+  document.getElementById('hospitalSelect').innerHTML='<option value="">— Select Hospital —</option>';
+  document.getElementById('hospitalField').style.opacity='0.4';
+  document.getElementById('hospitalField').style.pointerEvents='none';
+  document.getElementById('newHospName').value='';
+  document.getElementById('newHospField').style.display='none';
+  document.getElementById('newHospBanner').classList.remove('show');
+  // Reset unit inputs
+  ['p_her2','p_pacliall','p_kintsugi','p_cancrinase','p_supdeno',
+   'a_her2','a_pacliall','a_kintsugi','a_cancrinase','a_supdeno'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value='';
+  });
+  // Deselect month chips
+  document.querySelectorAll('#monthChips .chip').forEach(c => c.classList.remove('selected'));
+  // Reset state
+  chipState.month=null;
+  Object.assign(state, {
+    kamName:'', empCode:'',
+    hq:'', region:'', zone:'', hospitalCode:'', hospitalName:'', newHospName:'', isNewHosp:false,
+    doctors:[{drName:'', wsfaCode:'', spec:''}],
+    month:'',
+    p:{her2:0,pacliall:0,kintsugi:0,cancrinase:0,supdeno:0},
+    a:{her2:0,pacliall:0,kintsugi:0,cancrinase:0,supdeno:0}
+  });
+  // Re-render doctor section
+  renderDoctors();
+  document.getElementById('successScreen').classList.remove('show');
+  document.getElementById('bottomNav').style.display='flex';
+  document.getElementById('stepIndicators').style.display='flex';
+  showStep(0);
+}
+</script>
+</body>
+</html>

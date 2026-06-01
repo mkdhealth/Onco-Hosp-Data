@@ -537,7 +537,16 @@ function onHospitalChange() {
   const isNew = val === 'NEW';
   document.getElementById('newHospField').style.display = isNew ? 'block' : 'none';
   document.getElementById('newHospBanner').classList.toggle('show', isNew);
-  // Reset doctors so dropdown repopulates for new hospital
+  // Update hospitalCode in state immediately so renderDoctors picks correct doctors
+  if (val === 'NEW') {
+    state.hospitalCode = ''; state.hospitalName = 'Other / New hospital (type below)'; state.isNewHosp = true;
+  } else if (val) {
+    const [code, ...nameParts] = val.split('||');
+    state.hospitalCode = code; state.hospitalName = nameParts.join('||'); state.isNewHosp = false;
+  } else {
+    state.hospitalCode = ''; state.hospitalName = ''; state.isNewHosp = false;
+  }
+  // Reset doctors so dropdown repopulates for the selected hospital
   state.doctors = [{drKey:'', drName:'', wsfaCode:'', spec:''}];
   renderDoctors();
 }
@@ -718,6 +727,7 @@ function showStep(n) {
   }
   currentStep = n;
   updateUI();
+  if (n === 2) renderDoctors(); // Re-render doctors with correct hospitalCode
   window.scrollTo({top: 0, behavior: 'smooth'});
 }
 

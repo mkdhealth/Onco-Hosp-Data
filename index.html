@@ -563,10 +563,13 @@ function renderDoctors() {
   if (!container) return;
   const specs = ['MO','Onco-Surgeon','Radiation Oncologist','Clinical Oncologist','ONCOLOGIST','HAEMATOLOGIST','Surgical Oncologist'];
   const hospDoctors = state.hospitalCode ? (DOCTOR_DATA[state.hospitalCode] || []) : [];
+  const hasMaster = hospDoctors.length > 0;
+
   container.innerHTML = state.doctors.map((doc, i) => {
     const canRemove = state.doctors.length > 1;
-    const isOther = doc.drKey === 'OTHER' || hospDoctors.length === 0;
-    const fromMaster = doc.drKey && doc.drKey !== 'OTHER';
+    const showManual  = !hasMaster || doc.drKey === 'OTHER';
+    const showMaster  = hasMaster && doc.drKey && doc.drKey !== 'OTHER';
+    const showDropdown = hasMaster;
     return `
     <div class="doctor-card-entry" id="docEntry${i}">
       <div class="doctor-num-header">
@@ -574,43 +577,48 @@ function renderDoctors() {
         ${canRemove ? `<button class="remove-dr-btn" onclick="removeDoctor(${i})">✕ Remove</button>` : ''}
       </div>
       <div class="doctor-entry-body">
-        ${hospDoctors.length > 0 ? `
+
+        ${showDropdown ? `
         <div class="field">
           <label>Select Doctor <span class="req">*</span></label>
           <select id="drSelect_${i}" onchange="onDrSelect(${i},this.value)">
             <option value="">— Select Doctor —</option>
             ${hospDoctors.map(d => `<option value="${d.wsfa}" ${doc.drKey===d.wsfa?'selected':''}>${d.name} (${d.spec})</option>`).join('')}
-            <option value="OTHER" ${doc.drKey==='OTHER'?'selected':''}>⊕ Other / Not in list</option>
+            <option value="OTHER" ${doc.drKey==='OTHER'?'selected':''}>⊕ Other / Not in list (enter manually)</option>
           </select>
           <div class="err-msg" id="err_drName_${i}">Please select a doctor</div>
+        </div>
+
+        <div id="masterConfirm_${i}" style="display:${showMaster?'block':'none'};background:#F0FBF4;border:1.5px solid #6EE7B7;border-radius:10px;padding:12px 14px;margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:#065F46;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px">✅ Doctor from Master</div>
+          <div id="masterConfirmName_${i}" style="font-size:14px;font-weight:600;color:#1A1215">${esc(doc.drName)}</div>
+          <div style="font-size:12px;color:#6B5560;margin-top:3px">WSFA: <strong id="masterConfirmWsfa_${i}" style="color:#1A6B5A">${esc(doc.wsfaCode)}</strong> &nbsp;|&nbsp; <span id="masterConfirmSpec_${i}">${esc(doc.spec)}</span></div>
         </div>` : ''}
-        ${isOther ? `
-        <div class="field">
-          <label>Dr Name <span class="req">*</span></label>
-          <input type="text" id="drName_${i}" placeholder="Dr. Full Name" autocomplete="off"
-            value="${esc(doc.drName)}"
-            oninput="state.doctors[${i}].drName=this.value.trim()"/>
-          ${hospDoctors.length === 0 ? `<div class="err-msg" id="err_drName_${i}">Please enter the doctor\'s name</div>` : ''}
-        </div>
-        <div class="field">
-          <label>WSFA Code</label>
-          <input type="text" id="wsfaCode_${i}" placeholder="Enter WSFA/Party code" autocomplete="off"
-            value="${esc(doc.wsfaCode)}"
-            oninput="state.doctors[${i}].wsfaCode=this.value.trim()"/>
-          <div class="field-hint">Party code — enter if known.</div>
-        </div>
-        <div class="field">
-          <label>Speciality <span class="req">*</span></label>
-          <div class="chip-group" id="specChips_${i}">
-            ${specs.map(s => `<div class="chip${doc.spec===s?' selected':''}" onclick="selectDocChip(${i},'spec','${s}',this)">${s}</div>`).join('')}
+
+        <div id="manualEntry_${i}" style="display:${showManual?'block':'none'}">
+          <div class="field">
+            <label>Dr Name <span class="req">*</span></label>
+            <input type="text" id="drName_${i}" placeholder="Dr. Full Name" autocomplete="off"
+              value="${esc(doc.drName)}"
+              oninput="state.doctors[${i}].drName=this.value"/>
+            <div class="err-msg" id="err_drNameManual_${i}">Please enter the doctor's name</div>
           </div>
-          <div class="err-msg" id="err_spec_${i}">Please select a speciality</div>
-        </div>` : fromMaster ? `
-        <div style="background:#F0FBF4;border:1.5px solid #6EE7B7;border-radius:10px;padding:12px 14px;margin-top:4px">
-          <div style="font-size:12px;font-weight:700;color:#065F46;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:8px">✅ Doctor from Master</div>
-          <div style="font-size:14px;font-weight:600;color:#1A1215">${esc(doc.drName)}</div>
-          <div style="font-size:12px;color:#6B5560;margin-top:3px">WSFA: <strong style="color:#1A6B5A">${esc(doc.wsfaCode)}</strong> &nbsp;|&nbsp; ${esc(doc.spec)}</div>
-        </div>` : ''}
+          <div class="field">
+            <label>WSFA / Party Code</label>
+            <input type="text" id="wsfaCode_${i}" placeholder="Enter WSFA / Party code (if known)" autocomplete="off"
+              value="${esc(doc.wsfaCode)}"
+              oninput="state.doctors[${i}].wsfaCode=this.value"/>
+            <div class="field-hint">Enter the doctor's party/WSFA code if available.</div>
+          </div>
+          <div class="field">
+            <label>Speciality <span class="req">*</span></label>
+            <div class="chip-group" id="specChips_${i}">
+              ${specs.map(s => `<div class="chip${doc.spec===s?' selected':''}" onclick="selectDocChip(${i},'spec','${s}',this)">${s}</div>`).join('')}
+            </div>
+            <div class="err-msg" id="err_spec_${i}">Please select a speciality</div>
+          </div>
+        </div>
+
       </div>
     </div>`;
   }).join('');
@@ -618,18 +626,46 @@ function renderDoctors() {
 
 function onDrSelect(i, val) {
   const hospDoctors = state.hospitalCode ? (DOCTOR_DATA[state.hospitalCode] || []) : [];
+  const manualDiv   = document.getElementById('manualEntry_' + i);
+  const masterDiv   = document.getElementById('masterConfirm_' + i);
+
   if (val === 'OTHER') {
-    state.doctors[i] = {drKey:'OTHER', drName:'', wsfaCode:'', spec:''};
+    state.doctors[i].drKey    = 'OTHER';
+    state.doctors[i].drName   = '';
+    state.doctors[i].wsfaCode = '';
+    state.doctors[i].spec     = '';
+    if (manualDiv) manualDiv.style.display = 'block';
+    if (masterDiv) masterDiv.style.display = 'none';
+    // Clear manual inputs
+    const n = document.getElementById('drName_' + i);
+    const w = document.getElementById('wsfaCode_' + i);
+    if (n) n.value = '';
+    if (w) w.value = '';
+    // Clear spec chips
+    document.querySelectorAll('#specChips_' + i + ' .chip').forEach(c => c.classList.remove('selected'));
+    setTimeout(() => { const n2 = document.getElementById('drName_' + i); if(n2) n2.focus(); }, 50);
   } else if (val) {
     const found = hospDoctors.find(d => d.wsfa === val);
     if (found) {
       state.doctors[i] = {drKey: found.wsfa, drName: found.name, wsfaCode: found.wsfa, spec: found.spec};
+      if (manualDiv) manualDiv.style.display = 'none';
+      if (masterDiv) {
+        masterDiv.style.display = 'block';
+        const mn = document.getElementById('masterConfirmName_' + i);
+        const mw = document.getElementById('masterConfirmWsfa_' + i);
+        const ms = document.getElementById('masterConfirmSpec_' + i);
+        if (mn) mn.textContent = found.name;
+        if (mw) mw.textContent = found.wsfa;
+        if (ms) ms.textContent = found.spec;
+      }
     }
   } else {
-    state.doctors[i] = {drKey:'', drName:'', wsfaCode:'', spec:''};
+    state.doctors[i].drKey = '';
+    if (manualDiv) manualDiv.style.display = 'none';
+    if (masterDiv) masterDiv.style.display = 'none';
   }
-  renderDoctors();
 }
+
 
 function addDoctor() {
   state.doctors.push({drKey:'', drName:'', wsfaCode:'', spec:''});
@@ -719,6 +755,7 @@ function validate() {
     const hospDoctors = state.hospitalCode ? (DOCTOR_DATA[state.hospitalCode] || []) : [];
     state.doctors.forEach((doc, i) => {
       if (hospDoctors.length > 0) {
+        // Must pick from dropdown (or OTHER)
         const selEl = document.getElementById(`drSelect_${i}`);
         if (!doc.drKey) {
           const e = document.getElementById(`err_drName_${i}`); if (e) e.classList.add('show');
@@ -727,21 +764,30 @@ function validate() {
           const e = document.getElementById(`err_drName_${i}`); if (e) e.classList.remove('show');
           if (selEl) selEl.classList.remove('input-error');
         }
+        // If OTHER: also validate manual name + spec
         if (doc.drKey === 'OTHER') {
           const nameEl = document.getElementById(`drName_${i}`);
-          const nameVal = nameEl ? nameEl.value.trim() : doc.drName;
-          if (!nameVal) { ok = false; if (nameEl) nameEl.classList.add('input-error'); }
+          const nameVal = nameEl ? nameEl.value.trim() : doc.drName.trim();
+          if (!nameVal) {
+            ok = false;
+            if (nameEl) nameEl.classList.add('input-error');
+            const e = document.getElementById(`err_drNameManual_${i}`); if (e) e.classList.add('show');
+          } else {
+            if (nameEl) nameEl.classList.remove('input-error');
+            const e = document.getElementById(`err_drNameManual_${i}`); if (e) e.classList.remove('show');
+          }
           if (!doc.spec) { const e = document.getElementById(`err_spec_${i}`); if (e) e.classList.add('show'); ok = false; }
           else { const e = document.getElementById(`err_spec_${i}`); if (e) e.classList.remove('show'); }
         }
       } else {
+        // No master doctors — full manual entry
         const nameEl = document.getElementById(`drName_${i}`);
-        const nameVal = nameEl ? nameEl.value.trim() : doc.drName;
+        const nameVal = nameEl ? nameEl.value.trim() : doc.drName.trim();
         if (!nameVal) {
-          const e = document.getElementById(`err_drName_${i}`); if (e) e.classList.add('show');
+          const e = document.getElementById(`err_drNameManual_${i}`); if (e) e.classList.add('show');
           if (nameEl) nameEl.classList.add('input-error'); ok = false;
         } else {
-          const e = document.getElementById(`err_drName_${i}`); if (e) e.classList.remove('show');
+          const e = document.getElementById(`err_drNameManual_${i}`); if (e) e.classList.remove('show');
           if (nameEl) nameEl.classList.remove('input-error');
         }
         if (!doc.spec) { const e = document.getElementById(`err_spec_${i}`); if (e) e.classList.add('show'); ok = false; }
@@ -769,9 +815,9 @@ function collectState() {
   if (currentStep >= 2) {
     state.doctors.forEach((doc, i) => {
       if (doc.drKey === 'OTHER' || !doc.drKey) {
-        const nameEl = document.getElementById(`drName_${i}`);
+        const nameEl = document.getElementById('drName_' + i);
         if (nameEl) doc.drName = nameEl.value.trim();
-        const wsfaEl = document.getElementById(`wsfaCode_${i}`);
+        const wsfaEl = document.getElementById('wsfaCode_' + i);
         if (wsfaEl) doc.wsfaCode = wsfaEl.value.trim();
       }
     });

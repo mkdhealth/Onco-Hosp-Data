@@ -877,13 +877,6 @@ function buildSummary() {
       <div class="summary-row"><span class="summary-key">Reporting Month</span><span class="summary-val" style="font-weight:700">${esc(state.month)}</span></div>
     </div>
     <div class="summary-section">
-      <div class="summary-label">Available Qty (as of reporting date)</div>
-      <table class="units-table">
-        <thead><tr><th>Product</th><th style="text-align:right">Available</th></tr></thead>
-        <tbody>${brands.map((b,bi) => `<tr><td class="brand-col">${b}</td><td class="num-col">${state.avail[bkeys[bi]]}</td></tr>`).join('')}</tbody>
-      </table>
-    </div>
-    <div class="summary-section">
       <div class="summary-label">Doctors &amp; Product-wise Units (${state.doctors.length})</div>
       ${state.doctors.map((doc, i) => `
       <div class="doc-summary-entry">
@@ -899,8 +892,8 @@ function buildSummary() {
     <div class="summary-section">
       <div class="summary-label">Hospital Total (all doctors)</div>
       <table class="units-table">
-        <thead><tr><th>Product</th><th style="text-align:right">Planned</th><th style="text-align:right">Actual</th><th style="text-align:right">Next Month Plan</th></tr></thead>
-        <tbody>${brands.map((b,bi) => `<tr><td class="brand-col">${b}</td><td class="num-col">${tot.p[bkeys[bi]]}</td><td class="num-col" style="color:var(--accent)">${tot.a[bkeys[bi]]}</td><td class="num-col" style="color:var(--primary)">${tot.np[bkeys[bi]]}</td></tr>`).join('')}</tbody>
+        <thead><tr><th>Product</th><th style="text-align:right">Available</th><th style="text-align:right">Planned</th><th style="text-align:right">Actual</th><th style="text-align:right">Next Month Plan</th></tr></thead>
+        <tbody>${brands.map((b,bi) => `<tr><td class="brand-col">${b}</td><td class="num-col">${state.avail[bkeys[bi]]}</td><td class="num-col">${tot.p[bkeys[bi]]}</td><td class="num-col" style="color:var(--accent)">${tot.a[bkeys[bi]]}</td><td class="num-col" style="color:var(--primary)">${tot.np[bkeys[bi]]}</td></tr>`).join('')}</tbody>
       </table>
     </div>`;
 }

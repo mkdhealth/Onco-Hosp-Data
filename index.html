@@ -218,8 +218,8 @@
     </div>
   </div>
 
-  <!-- ═══ STEP 2: Hospital ═══ -->
-  <div id="step1" class="step-page" style="display:none">
+  <!-- ═══ STEP 3: Hospital ═══ -->
+  <div id="step2" class="step-page" style="display:none">
     <div class="card">
       <div class="card-header">
         <div class="card-header-icon">🏥</div>
@@ -264,8 +264,8 @@
     </div>
   </div>
 
-  <!-- ═══ STEP 3: Doctors (multi-entry) ═══ -->
-  <div id="step2" class="step-page" style="display:none">
+  <!-- ═══ STEP 4: Doctors (multi-entry) ═══ -->
+  <div id="step3" class="step-page" style="display:none">
     <div class="card">
       <div class="card-header">
         <div class="card-header-icon">🩺</div>
@@ -278,8 +278,8 @@
     </div>
   </div>
 
-  <!-- ═══ STEP 4: Reporting Month ═══ -->
-  <div id="step3" class="step-page" style="display:none">
+  <!-- ═══ STEP 2: Reporting Month ═══ -->
+  <div id="step1" class="step-page" style="display:none">
     <div class="card">
       <div class="card-header">
         <div class="card-header-icon">📅</div>
@@ -511,7 +511,7 @@ function onMonthYearChange() {
 function renderDoctors() {
   const container = document.getElementById('doctorListBody');
   if (!container) return;
-  const specs = ['MO','Onco-Surgeon','Radiation Oncologist','Clinical Oncologist','ONCOLOGIST','HAEMATOLOGIST','Surgical Oncologist'];
+  const specs = ['Medical Oncologist','Onco-Surgeon','Radiation Oncologist','Clinical Oncologist','HAEMATOLOGIST','Surgical Oncologist'];
   const brands = ['Her2 P','Pacliall','Kintsugi','Cancrinase','Supdeno'];
   const bkeys  = ['her2','pacliall','kintsugi','cancrinase','supdeno'];
   const hospDoctors = state.hospitalCode ? (DOCTOR_DATA[state.hospitalCode] || []) : [];
@@ -691,7 +691,7 @@ function showStep(n) {
   }
   currentStep = n;
   updateUI();
-  if (n === 2) renderDoctors(); // Re-render doctors with correct hospitalCode
+  if (n === 3) renderDoctors(); // Re-render doctors with correct hospitalCode
   window.scrollTo({top: 0, behavior: 'smooth'});
 }
 
@@ -715,7 +715,7 @@ function validate() {
     ec ? (hide('err_empCode'), mark('empCode', true)) : show('err_empCode');
     mark('kamName', !!kn); mark('empCode', !!ec);
   }
-  if (currentStep === 1) {
+  if (currentStep === 2) {
     const hq = document.getElementById('hqSelect').value;
     const hosp = document.getElementById('hospitalSelect').value;
     const newH = document.getElementById('newHospName').value.trim();
@@ -725,7 +725,7 @@ function validate() {
     else hide('err_newHosp');
     if (hosp === 'NEW') mark('newHospName', !!newH);
   }
-  if (currentStep === 2) {
+  if (currentStep === 3) {
     const hospDoctors = state.hospitalCode ? (DOCTOR_DATA[state.hospitalCode] || []) : [];
     state.doctors.forEach((doc, i) => {
       if (hospDoctors.length > 0) {
@@ -770,7 +770,7 @@ function validate() {
     });
   }
 
-  if (currentStep === 3) {
+  if (currentStep === 1) {
     chipState.month ? hide('err_month') : show('err_month');
   }
   return ok;
@@ -778,7 +778,7 @@ function validate() {
 
 function collectState() {
   if (currentStep >= 0) { state.kamName = document.getElementById('kamName').value.trim(); state.empCode = document.getElementById('empCode').value.trim(); }
-  if (currentStep >= 1) {
+  if (currentStep >= 2) {
     state.hq = document.getElementById('hqSelect').value;
   const _rz = HQ_REGION_ZONE[state.hq]||{region:'',zone:''}; state.region=_rz.region; state.zone=_rz.zone;
     const hv = document.getElementById('hospitalSelect').value;
@@ -786,7 +786,7 @@ function collectState() {
     else if (hv) { const [code, ...nameParts] = hv.split('||'); state.hospitalCode = code; state.hospitalName = nameParts.join('||'); state.isNewHosp = false; }
     state.newHospName = document.getElementById('newHospName').value.trim();
   }
-  if (currentStep >= 2) {
+  if (currentStep >= 3) {
     const bkeys = ['her2','pacliall','kintsugi','cancrinase','supdeno'];
     state.doctors.forEach((doc, i) => {
       if (doc.drKey === 'OTHER' || !doc.drKey) {
@@ -803,7 +803,7 @@ function collectState() {
       });
     });
   }
-  if (currentStep >= 3) { const m=document.getElementById('monthSel').value,y=document.getElementById('yearSel').value; if(m&&y){chipState.month=m+' '+y;} state.month = chipState.month || ''; }
+  if (currentStep >= 1) { const m=document.getElementById('monthSel').value,y=document.getElementById('yearSel').value; if(m&&y){chipState.month=m+' '+y;} state.month = chipState.month || ''; }
 }
 
 function nextStep() {

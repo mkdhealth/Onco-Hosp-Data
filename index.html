@@ -265,35 +265,25 @@
     </div>
   </div>
 
-    <!-- ═══ STEP 4: Available Quantity ═══ -->
+    <!-- ═══ STEP 4: Hospital Availability Status ═══ -->
   <div id="step3" class="step-page" style="display:none">
     <div class="card">
       <div class="card-header">
         <div class="card-header-icon">📦</div>
-        <div><h2>Available Quantity</h2><p>Total product-wise stock available at hospital as of reporting date</p></div>
+        <div><h2>Hospital Availability Status</h2><p>Product-wise purchase and closing stock as of reporting date</p></div>
       </div>
       <div class="card-body">
-        <div class="unit-grid">
-          <div class="unit-row">
-            <div class="unit-brand">Her2 P<span>Available qty</span></div>
-            <div class="unit-input"><input type="number" id="av_her2" min="0" inputmode="numeric" placeholder="0"/></div>
-          </div>
-          <div class="unit-row">
-            <div class="unit-brand">Pacliall<span>Available qty</span></div>
-            <div class="unit-input"><input type="number" id="av_pacliall" min="0" inputmode="numeric" placeholder="0"/></div>
-          </div>
-          <div class="unit-row">
-            <div class="unit-brand">Kintsugi<span>Available qty</span></div>
-            <div class="unit-input"><input type="number" id="av_kintsugi" min="0" inputmode="numeric" placeholder="0"/></div>
-          </div>
-          <div class="unit-row">
-            <div class="unit-brand">Cancrinase<span>Available qty</span></div>
-            <div class="unit-input"><input type="number" id="av_cancrinase" min="0" inputmode="numeric" placeholder="0"/></div>
-          </div>
-          <div class="unit-row">
-            <div class="unit-brand">Supdeno<span>Available qty</span></div>
-            <div class="unit-input"><input type="number" id="av_supdeno" min="0" inputmode="numeric" placeholder="0"/></div>
-          </div>
+        <div class="dr-units" style="margin-top:0">
+          <table class="dru-table">
+            <thead><tr><th>Product</th><th>Qty Purchased</th><th>Closing Stock</th></tr></thead>
+            <tbody>
+              <tr><td class="dru-brand">Her2 P</td><td><input type="number" min="0" inputmode="numeric" id="pur_her2" placeholder="0"/></td><td><input type="number" min="0" inputmode="numeric" id="cls_her2" placeholder="0"/></td></tr>
+              <tr><td class="dru-brand">Pacliall</td><td><input type="number" min="0" inputmode="numeric" id="pur_pacliall" placeholder="0"/></td><td><input type="number" min="0" inputmode="numeric" id="cls_pacliall" placeholder="0"/></td></tr>
+              <tr><td class="dru-brand">Kintsugi</td><td><input type="number" min="0" inputmode="numeric" id="pur_kintsugi" placeholder="0"/></td><td><input type="number" min="0" inputmode="numeric" id="cls_kintsugi" placeholder="0"/></td></tr>
+              <tr><td class="dru-brand">Cancrinase</td><td><input type="number" min="0" inputmode="numeric" id="pur_cancrinase" placeholder="0"/></td><td><input type="number" min="0" inputmode="numeric" id="cls_cancrinase" placeholder="0"/></td></tr>
+              <tr><td class="dru-brand">Supdeno</td><td><input type="number" min="0" inputmode="numeric" id="pur_supdeno" placeholder="0"/></td><td><input type="number" min="0" inputmode="numeric" id="cls_supdeno" placeholder="0"/></td></tr>
+            </tbody>
+          </table>
         </div>
         <p style="font-size:12px;color:var(--text-light);margin-top:14px;text-align:center">Leave blank or enter 0 if not applicable</p>
       </div>
@@ -448,7 +438,7 @@ function newDoctor(){return {drKey:'', drName:'', wsfaCode:'', spec:'',
 const state = {
   kamName:'', empCode:'',
   hq:'', region:'', zone:'', hospitalCode:'', hospitalName:'', newHospName:'', isNewHosp:false,
-  avail:{her2:0,pacliall:0,kintsugi:0,cancrinase:0,supdeno:0},
+  avail:{pur:{her2:0,pacliall:0,kintsugi:0,cancrinase:0,supdeno:0},cls:{her2:0,pacliall:0,kintsugi:0,cancrinase:0,supdeno:0}},
   doctors:[newDoctor()],
   month:''
 };
@@ -823,7 +813,7 @@ function collectState() {
     else if (hv) { const [code, ...nameParts] = hv.split('||'); state.hospitalCode = code; state.hospitalName = nameParts.join('||'); state.isNewHosp = false; }
     state.newHospName = document.getElementById('newHospName').value.trim();
   }
-  if (currentStep >= 3) { const ids=['her2','pacliall','kintsugi','cancrinase','supdeno']; ids.forEach(b=>{ const el=document.getElementById('av_'+b); if(el) state.avail[b]=parseInt(el.value)||0; }); }
+  if (currentStep >= 3) { const ids=['her2','pacliall','kintsugi','cancrinase','supdeno']; ids.forEach(b=>{ const pe=document.getElementById('pur_'+b); if(pe) state.avail.pur[b]=parseInt(pe.value)||0; const ce=document.getElementById('cls_'+b); if(ce) state.avail.cls[b]=parseInt(ce.value)||0; }); }
   if (currentStep >= 4) {
     const bkeys = ['her2','pacliall','kintsugi','cancrinase','supdeno'];
     state.doctors.forEach((doc, i) => {
@@ -892,8 +882,8 @@ function buildSummary() {
     <div class="summary-section">
       <div class="summary-label">Hospital Total (all doctors)</div>
       <table class="units-table">
-        <thead><tr><th>Product</th><th style="text-align:right">Available</th><th style="text-align:right">Planned</th><th style="text-align:right">Actual</th><th style="text-align:right">Next Month Plan</th></tr></thead>
-        <tbody>${brands.map((b,bi) => `<tr><td class="brand-col">${b}</td><td class="num-col">${state.avail[bkeys[bi]]}</td><td class="num-col">${tot.p[bkeys[bi]]}</td><td class="num-col" style="color:var(--accent)">${tot.a[bkeys[bi]]}</td><td class="num-col" style="color:var(--primary)">${tot.np[bkeys[bi]]}</td></tr>`).join('')}</tbody>
+        <thead><tr><th>Product</th><th style="text-align:right">Purchased</th><th style="text-align:right">Closing</th><th style="text-align:right">Planned</th><th style="text-align:right">Actual</th><th style="text-align:right">Next Month Plan</th></tr></thead>
+        <tbody>${brands.map((b,bi) => `<tr><td class="brand-col">${b}</td><td class="num-col">${state.avail.pur[bkeys[bi]]}</td><td class="num-col">${state.avail.cls[bkeys[bi]]}</td><td class="num-col">${tot.p[bkeys[bi]]}</td><td class="num-col" style="color:var(--accent)">${tot.a[bkeys[bi]]}</td><td class="num-col" style="color:var(--primary)">${tot.np[bkeys[bi]]}</td></tr>`).join('')}</tbody>
       </table>
     </div>`;
 }
@@ -932,8 +922,10 @@ async function submitForm() {
     const doc = state.doctors[i];
     // Hospital-level available stock — written ONLY on Doctor 1's row (0 for others) so SUM stays correct
     const availFields = (i === 0)
-      ? { her2p_avail: state.avail.her2, pacliall_avail: state.avail.pacliall, kintsugi_avail: state.avail.kintsugi, cancrinase_avail: state.avail.cancrinase, supdeno_avail: state.avail.supdeno }
-      : { her2p_avail: 0, pacliall_avail: 0, kintsugi_avail: 0, cancrinase_avail: 0, supdeno_avail: 0 };
+      ? { her2p_pur: state.avail.pur.her2, pacliall_pur: state.avail.pur.pacliall, kintsugi_pur: state.avail.pur.kintsugi, cancrinase_pur: state.avail.pur.cancrinase, supdeno_pur: state.avail.pur.supdeno,
+          her2p_cls: state.avail.cls.her2, pacliall_cls: state.avail.cls.pacliall, kintsugi_cls: state.avail.cls.kintsugi, cancrinase_cls: state.avail.cls.cancrinase, supdeno_cls: state.avail.cls.supdeno }
+      : { her2p_pur: 0, pacliall_pur: 0, kintsugi_pur: 0, cancrinase_pur: 0, supdeno_pur: 0,
+          her2p_cls: 0, pacliall_cls: 0, kintsugi_cls: 0, cancrinase_cls: 0, supdeno_cls: 0 };
     const payload = {
       ...common,
       doctor_index: i + 1,
@@ -1020,12 +1012,12 @@ function resetForm() {
   Object.assign(state, {
     kamName:'', empCode:'',
     hq:'', region:'', zone:'', hospitalCode:'', hospitalName:'', newHospName:'', isNewHosp:false,
-    avail:{her2:0,pacliall:0,kintsugi:0,cancrinase:0,supdeno:0},
+    avail:{pur:{her2:0,pacliall:0,kintsugi:0,cancrinase:0,supdeno:0},cls:{her2:0,pacliall:0,kintsugi:0,cancrinase:0,supdeno:0}},
     doctors:[newDoctor()],
     month:''
   });
   chipState.month = null;
-  ['her2','pacliall','kintsugi','cancrinase','supdeno'].forEach(b=>{const el=document.getElementById('av_'+b); if(el) el.value='';});
+  ['her2','pacliall','kintsugi','cancrinase','supdeno'].forEach(b=>{['pur_','cls_'].forEach(pre=>{const el=document.getElementById(pre+b); if(el) el.value='';});});
   // Re-render doctor section
   renderDoctors();
   document.getElementById('successScreen').classList.remove('show');
